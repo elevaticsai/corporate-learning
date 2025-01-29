@@ -6,11 +6,13 @@ import HRDashboard from './components/admin/HRDashboard';
 import InstructorDashboard from './components/admin/InstructorDashboard';
 import EmployeeDashboard from './components/admin/EmployeeDashboard';
 import OnboardingForm from './components/OnboardingForm';
+import LoginPage from './components/auth/LoginPage';
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<OnboardingForm />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />

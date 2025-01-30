@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   BookOpen,
   CheckCircle,
@@ -90,12 +91,13 @@ const MetricCard = ({ icon: Icon, title, value, trend }: { icon: any, title: str
 );
 
 const InstructorDashboard = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleCreateCourse = () => {
-    setShowCreateModal(true);
+    navigate('/admin/courses/create');
   };
 
   const handleEditCourse = (courseId: number) => {

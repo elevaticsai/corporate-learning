@@ -10,10 +10,36 @@ import {
   ChevronLeft,
   ChevronRight as ChevronNextIcon,
   Maximize2,
-  Pause
+  Pause,
+  MessageCircle,
+  Heart
 } from 'lucide-react';
 
-// Updated mock data with chapter descriptions
+// Mock data for Q&A section
+const qaData = [
+  {
+    id: 1,
+    question: "Sarah is new to the company and notices that her colleague, Tom, often makes jokes with sexual innuendos during team meetings. While some team members laugh, others seem uncomfortable. Sarah isn't sure if this constitutes sexual harassment. How would you advise Sarah?",
+    options: [
+      { id: 'a', text: 'Ignore it, as jokes are just part of the workplace culture', isCorrect: false },
+      { id: 'b', text: 'Confront Tom directly and tell him to stop', isCorrect: false },
+      { id: 'c', text: 'Report the behavior to HR or a supervisor, as it could create a hostile work environment', isCorrect: true },
+      { id: 'd', text: 'Do not Report the behavior to HR or a supervisor, as it is not a hostile work environment', isCorrect: false }
+    ]
+  },
+  {
+    id: 2,
+    question: "Which of the following behaviors could be considered sexual harassment?",
+    options: [
+      { id: 'a', text: 'Discussing work projects during lunch', isCorrect: false },
+      { id: 'b', text: 'Unwanted touching or physical contact', isCorrect: true },
+      { id: 'c', text: 'Scheduling team meetings', isCorrect: false },
+      { id: 'd', text: 'Providing constructive feedback', isCorrect: false }
+    ]
+  }
+];
+
+// Updated mock data with Q&A chapter
 const trainingDetails = {
   id: 1,
   title: 'Mandatory POSH Training',
@@ -98,6 +124,15 @@ const trainingDetails = {
       description: 'Understand the long-term effects of workplace safety practices on organizations and individuals. Explore case studies of successful safety implementations and their outcomes. Learn about measuring and evaluating safety program effectiveness.',
       duration: '15 mins',
       status: 'pending'
+    },
+    {
+      id: 11,
+      title: 'Knowledge Check',
+      description: 'Test your understanding of POSH concepts through interactive questions and scenarios. This assessment will help reinforce key learning points and ensure comprehension of critical workplace safety topics.',
+      duration: '20 mins',
+      status: 'pending',
+      type: 'quiz',
+      questions: qaData
     }
   ]
 };
@@ -109,6 +144,9 @@ const TrainingDetails = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showResult, setShowResult] = useState(false);
 
   const handleChapterSelect = (chapter) => {
     setSelectedChapter(chapter);
@@ -127,6 +165,186 @@ const TrainingDetails = () => {
     if (currentIndex > 0) {
       setSelectedChapter(trainingDetails.chapters[currentIndex - 1]);
     }
+  };
+
+  const handleAnswerSelect = (optionId: string) => {
+    setSelectedAnswer(optionId);
+  };
+
+  const handleSubmitAnswer = () => {
+    if (selectedAnswer) {
+      setShowResult(true);
+    }
+  };
+
+  const handleNextQuestion = () => {
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setCurrentQuestionIndex(prev => Math.min(prev + 1, qaData.length - 1));
+  };
+
+  const handlePreviousQuestion = () => {
+    setSelectedAnswer(null);
+    setShowResult(false);
+    setCurrentQuestionIndex(prev => Math.max(prev - 1, 0));
+  };
+
+  const renderContent = () => {
+    if (selectedChapter.type === 'quiz') {
+      return (
+        <div className="p-8 space-y-6">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">{selectedChapter.title}</h2>
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {qaData[currentQuestionIndex].question}
+            </h3>
+            <div className="space-y-3">
+              {qaData[currentQuestionIndex].options.map((option) => (
+                <label
+                  key={option.id}
+                  className={`block p-4 rounded-lg cursor-pointer transition ${
+                    selectedAnswer === option.id
+                      ? 'bg-blue-50 border-2 border-blue-500'
+                      : 'bg-white border-2 border-gray-200 hover:border-blue-200'
+                  }`}
+                >
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      name="answer"
+                      value={option.id}
+                      checked={selectedAnswer === option.id}
+                      onChange={() => handleAnswerSelect(option.id)}
+                      className="w-4 h-4 text-blue-500 focus:ring-blue-500"
+                    />
+                    <span className="ml-3">{option.text}</span>
+                  </div>
+                  {showResult && selectedAnswer === option.id && (
+                    <div className={`mt-2 text-sm ${option.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                      {option.isCorrect ? '✓ Correct!' : '✗ Incorrect. Try again.'}
+                    </div>
+                  )}
+                </label>
+              ))}
+            </div>
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={handlePreviousQuestion}
+                disabled={currentQuestionIndex === 0}
+                className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Previous
+              </button>
+              {!showResult ? (
+                <button
+                  onClick={handleSubmitAnswer}
+                  disabled={!selectedAnswer}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Submit
+                </button>
+              ) : (
+                <button
+                  onClick={handleNextQuestion}
+                  disabled={currentQuestionIndex === qaData.length - 1}
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Next Question
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex h-[calc(100vh-12rem)]">
+        {/* Content Panel */}
+        <div className="w-1/2 p-8 border-r border-gray-100 overflow-y-auto">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">{selectedChapter.title}</h2>
+          <div className="prose prose-blue max-w-none">
+            {selectedChapter.content}
+          </div>
+        </div>
+
+        {/* Media Panel */}
+        <div className="w-1/2 flex flex-col">
+          {/* Video/Image Container */}
+          <div className="relative flex-1 bg-gray-900">
+            <img
+              src={trainingDetails.image}
+              alt={selectedChapter.title}
+              className="w-full h-full object-cover"
+            />
+            
+            {/* Media Controls */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+              <div className="flex items-center justify-between text-white">
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="p-2 hover:bg-white/20 rounded-full transition"
+                  >
+                    {isPlaying ? <Pause className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
+                  </button>
+                  <button
+                    onClick={() => setIsMuted(!isMuted)}
+                    className="p-2 hover:bg-white/20 rounded-full transition"
+                  >
+                    {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                  </button>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={handlePreviousChapter}
+                    className="p-2 hover:bg-white/20 rounded-full transition"
+                    disabled={selectedChapter.id === trainingDetails.chapters[0].id}
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={handleNextChapter}
+                    className="p-2 hover:bg-white/20 rounded-full transition"
+                    disabled={selectedChapter.id === trainingDetails.chapters[trainingDetails.chapters.length - 1].id}
+                  >
+                    <ChevronNextIcon className="w-6 h-6" />
+                  </button>
+                  <button
+                    onClick={() => setIsFullscreen(!isFullscreen)}
+                    className="p-2 hover:bg-white/20 rounded-full transition"
+                  >
+                    <Maximize2 className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Chapter Navigation */}
+          <div className="p-4 bg-gray-50 border-t border-gray-100">
+            <div className="flex justify-between items-center">
+              <button
+                onClick={handlePreviousChapter}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={selectedChapter.id === trainingDetails.chapters[0].id}
+              >
+                <ChevronLeft className="w-5 h-5" />
+                <span>Previous Chapter</span>
+              </button>
+              <button
+                onClick={handleNextChapter}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={selectedChapter.id === trainingDetails.chapters[trainingDetails.chapters.length - 1].id}
+              >
+                <span>Next Chapter</span>
+                <ChevronNextIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -231,91 +449,7 @@ const TrainingDetails = () => {
             </div>
           </>
         ) : (
-          <div className="flex h-[calc(100vh-12rem)]">
-            {/* Content Panel */}
-            <div className="w-1/2 p-8 border-r border-gray-100 overflow-y-auto">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-6">{selectedChapter.title}</h2>
-              <div className="prose prose-blue max-w-none">
-                {selectedChapter.content}
-              </div>
-            </div>
-
-            {/* Media Panel */}
-            <div className="w-1/2 flex flex-col">
-              {/* Video/Image Container */}
-              <div className="relative flex-1 bg-gray-900">
-                <img
-                  src={trainingDetails.image}
-                  alt={selectedChapter.title}
-                  className="w-full h-full object-cover"
-                />
-                
-                {/* Media Controls */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                  <div className="flex items-center justify-between text-white">
-                    <div className="flex items-center space-x-4">
-                      <button
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className="p-2 hover:bg-white/20 rounded-full transition"
-                      >
-                        {isPlaying ? <Pause className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
-                      </button>
-                      <button
-                        onClick={() => setIsMuted(!isMuted)}
-                        className="p-2 hover:bg-white/20 rounded-full transition"
-                      >
-                        {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-                      </button>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <button
-                        onClick={handlePreviousChapter}
-                        className="p-2 hover:bg-white/20 rounded-full transition"
-                        disabled={selectedChapter.id === trainingDetails.chapters[0].id}
-                      >
-                        <ChevronLeft className="w-6 h-6" />
-                      </button>
-                      <button
-                        onClick={handleNextChapter}
-                        className="p-2 hover:bg-white/20 rounded-full transition"
-                        disabled={selectedChapter.id === trainingDetails.chapters[trainingDetails.chapters.length - 1].id}
-                      >
-                        <ChevronNextIcon className="w-6 h-6" />
-                      </button>
-                      <button
-                        onClick={() => setIsFullscreen(!isFullscreen)}
-                        className="p-2 hover:bg-white/20 rounded-full transition"
-                      >
-                        <Maximize2 className="w-6 h-6" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Chapter Navigation */}
-              <div className="p-4 bg-gray-50 border-t border-gray-100">
-                <div className="flex justify-between items-center">
-                  <button
-                    onClick={handlePreviousChapter}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={selectedChapter.id === trainingDetails.chapters[0].id}
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                    <span>Previous Chapter</span>
-                  </button>
-                  <button
-                    onClick={handleNextChapter}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={selectedChapter.id === trainingDetails.chapters[trainingDetails.chapters.length - 1].id}
-                  >
-                    <span>Next Chapter</span>
-                    <ChevronNextIcon className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          renderContent()
         )}
       </div>
     </div>

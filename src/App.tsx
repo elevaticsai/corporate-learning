@@ -8,6 +8,7 @@ import EmployeeDashboard from './components/admin/EmployeeDashboard';
 import TrainingDetails from './components/training/TrainingDetails';
 import OnboardingForm from './components/OnboardingForm';
 import LoginPage from './components/auth/LoginPage';
+import CreateCourse from './components/course/CreateCourse';
 
 function App() {
   return (
@@ -22,10 +23,11 @@ function App() {
           <Route path="instructor" element={<InstructorDashboard />} />
           <Route path="employee" element={<EmployeeDashboard />} />
           <Route path="training/:id" element={<TrainingDetails />} />
+          <Route path="courses/create" element={<CreateCourse />} />
         </Route>
       </Routes>
     </Router>
   );
 }
 
-export default App
+export default App;

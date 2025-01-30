@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import React, { useState } from "react";
+import { Outlet, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -11,45 +11,45 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronDown
-} from 'lucide-react';
+  ChevronDown,
+} from "lucide-react";
 
 const menuItems = [
   {
-    title: 'Dashboard',
+    title: "Dashboard",
     icon: LayoutDashboard,
-    path: '/admin/dashboard'
+    path: "/admin/dashboard",
   },
   {
-    title: 'HR Dashboard',
+    title: "HR Dashboard",
     icon: GraduationCap,
-    path: '/admin/hr'
+    path: "/admin/hr",
   },
   {
-    title: 'Instructor',
+    title: "Instructor",
     icon: School,
-    path: '/admin/instructor'
+    path: "/admin/instructor",
   },
   {
-    title: 'Clients',
+    title: "Clients",
     icon: Users,
-    path: '/admin/clients'
+    path: "/admin/clients",
   },
   {
-    title: 'Courses',
+    title: "Courses",
     icon: BookOpen,
-    path: '/admin/courses'
+    path: "/admin/courses",
   },
   {
-    title: 'Schedule',
+    title: "Schedule",
     icon: Calendar,
-    path: '/admin/schedule'
+    path: "/admin/schedule",
   },
   {
-    title: 'Settings',
+    title: "Settings",
     icon: Settings,
-    path: '/admin/settings'
-  }
+    path: "/admin/settings",
+  },
 ];
 
 const AdminLayout = () => {
@@ -57,12 +57,12 @@ const AdminLayout = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex bg-gray-50 min-h-screen">
       {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 lg:static`}
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 lg:static flex-shrink-0`}
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
@@ -86,8 +86,8 @@ const AdminLayout = () => {
                 className={({ isActive }) =>
                   `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-100"
                   }`
                 }
               >
@@ -100,7 +100,7 @@ const AdminLayout = () => {
       </div>
 
       {/* Main Content */}
-      <div className={`flex-1 ${sidebarOpen ? 'lg:ml-64' : ''}`}>
+      <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8">
           <button
@@ -121,7 +121,9 @@ const AdminLayout = () => {
                 alt="User"
                 className="w-8 h-8 rounded-full"
               />
-              <span className="text-sm font-medium text-gray-700">Admin User</span>
+              <span className="text-sm font-medium text-gray-700">
+                Admin User
+              </span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
 

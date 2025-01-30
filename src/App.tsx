@@ -5,6 +5,7 @@ import Dashboard from './components/admin/Dashboard';
 import HRDashboard from './components/admin/HRDashboard';
 import InstructorDashboard from './components/admin/InstructorDashboard';
 import EmployeeDashboard from './components/admin/EmployeeDashboard';
+import TrainingDetails from './components/training/TrainingDetails';
 import OnboardingForm from './components/OnboardingForm';
 import LoginPage from './components/auth/LoginPage';
 
@@ -20,10 +21,11 @@ function App() {
           <Route path="hr" element={<HRDashboard />} />
           <Route path="instructor" element={<InstructorDashboard />} />
           <Route path="employee" element={<EmployeeDashboard />} />
+          <Route path="training/:id" element={<TrainingDetails />} />
         </Route>
       </Routes>
     </Router>
   );
 }
 
-export default App;
+export default App

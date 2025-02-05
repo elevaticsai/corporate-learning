@@ -1,18 +1,57 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../store/authStore";
+import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { setAuthData, logout } from "../../redux/authSlice";
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { signin, isLoading, error } = useAuthStore();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login:', { email, password });
+    try {
+      await signin({
+        credentials: { email, password },
+        onSuccess: (user, token) => {
+          if (!user || !token) {
+            toast.error("Invalid response from server!");
+            return;
+          }
+
+          // Store full user details in Redux
+          dispatch(setAuthData({ token, user }));
+
+          // Redirect based on user role
+          if (user.role === "EMPLOYEE") {
+            navigate(`/employee`);
+          } else if (user.role === "MANAGER") {
+            navigate(`/hr`);
+          } else if (user.role === "SUPER_ADMIN") {
+            navigate(`/admin/dashboard`);
+          } else if (user.role === "INSTRUCTOR") {
+            navigate(`/instructor`);
+          } else {
+            toast.error("Unauthorized Role!");
+          }
+        },
+      });
+    } catch (err) {
+      console.error("Error during sign-in:", err);
+    }
   };
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen relative flex items-center justify-center">
-      {/* Background Image */}
       <img
         src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600&auto=format&fit=crop&q=80"
         alt="Background"
@@ -20,7 +59,6 @@ const LoginPage = () => {
       />
       <div className="absolute inset-0 bg-black/40"></div>
 
-      {/* Login Form */}
       <div className="relative w-full max-w-md mx-4">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -68,8 +106,11 @@ const LoginPage = () => {
             </button>
 
             <p className="text-center text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link to="/register" className="font-medium text-blue-600 hover:text-blue-700">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="font-medium text-blue-600 hover:text-blue-700"
+              >
                 Sign up
               </Link>
             </p>

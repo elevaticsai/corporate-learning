@@ -1,70 +1,57 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  BookOpen,
-  CheckCircle,
-  Clock,
-  Calendar,
-  GraduationCap,
-  Award
-} from 'lucide-react';
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
-// Mock data for the training cards
-const assignedTrainings = [
-  {
-    id: 1,
-    title: 'Mandatory POSH Training',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&q=60',
-    progress: 93,
-    dueDate: '2024-04-15',
-    status: 'In Progress'
-  },
-  {
-    id: 2,
-    title: 'Business Code of Conduct',
-    image: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=800&auto=format&fit=crop&q=60',
-    progress: 75,
-    dueDate: '2024-04-30',
-    status: 'In Progress'
-  },
-  {
-    id: 3,
-    title: 'Training on Grievance Management',
-    image: 'https://images.unsplash.com/photo-1552581234-26160f608093?w=800&auto=format&fit=crop&q=60',
-    progress: 50,
-    dueDate: '2024-05-15',
-    status: 'In Progress'
-  }
-];
+// Define TypeScript interfaces
+interface TrainingModule {
+  _id: string;
+  title: string;
+  description: string;
+  imgUrl: string;
+  chapters: string[];
+  assignments: string[];
+  questions: string[];
+  instructorId: string;
+  order: number;
+  category: string;
+  updatedAt: string;
+  moduleCompletionPercentage: number;
+}
 
-const TrainingCard = ({ training }: { training: any }) => {
+interface UserProgress {
+  _id: string;
+  userId: string;
+  allowedModules: TrainingModule[];
+  completedModules: TrainingModule[];
+  moduleProgress: TrainingModule[];
+}
+
+interface Training {
+  id: string;
+  title: string;
+  image: string;
+  progress: number;
+  dueDate: string;
+  status: string;
+}
+
+const TrainingCard = ({ training }: { training: Training }) => {
   const navigate = useNavigate();
 
   return (
-    <div 
+    <div
       className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-      onClick={() => navigate(`/admin/training/${training.id}`)}
+      onClick={() => navigate(`/training/${training.id}`)}
     >
-      <img 
-        src={training.image} 
+      <img
+        src={training.image}
         alt={training.title}
         className="w-full h-48 object-cover"
       />
       <div className="p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{training.title}</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          {training.title}
+        </h3>
         <div className="space-y-4">
           <div>
             <div className="flex justify-between text-sm text-gray-600 mb-1">
@@ -72,7 +59,7 @@ const TrainingCard = ({ training }: { training: any }) => {
               <span>{training.progress}%</span>
             </div>
             <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
                 style={{ width: `${training.progress}%` }}
               ></div>
@@ -91,19 +78,81 @@ const TrainingCard = ({ training }: { training: any }) => {
 };
 
 const EmployeeDashboard = () => {
+  const token = useSelector((state: any) => state.auth.token); // Get token from Redux store
+  const user = useSelector((state: any) => state.auth.user); // Get user data
+  const username = user?.username || "User"; // Default to "User" if undefined
+  const dispatch = useDispatch();
+  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
+  const [assignedTrainings, setAssignedTrainings] = useState<Training[]>([]);
+  const navigate = useNavigate();
+
+  // Fetch User Progress Data
+  useEffect(() => {
+    if (!token) {
+      alert("You are not logged in. Please log in to continue.");
+      return; // Stop execution if no token
+    }
+
+    fetch("http://localhost:4000/api/user-progress", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Unauthorized access. Please login again.");
+        }
+        return res.json();
+      })
+      .then((data: UserProgress) => {
+        setUserProgress(data);
+
+        // 🔥 Filter out null moduleId entries
+        const formattedTrainings = data.moduleProgress
+          .filter((module) => module._id) // Only include valid modules
+          .map((module) => ({
+            id: module._id,
+            title: module.title,
+            image: module.imgUrl,
+            progress: module.moduleCompletionPercentage || 0,
+            dueDate: "2024-04-15",
+            status:
+              module.moduleCompletionPercentage === 100
+                ? "Completed"
+                : "In Progress",
+          }));
+
+        setAssignedTrainings(formattedTrainings);
+      })
+      .catch((error) => {
+        console.error("Error fetching user progress:", error);
+        alert(error.message);
+      });
+  }, [token]);
+
   return (
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-        <h1 className="text-2xl font-semibold text-gray-900">Welcome back, John!</h1>
-        <p className="text-gray-500 mt-1">Track your learning progress and upcoming training sessions</p>
+        <h1 className="text-2xl font-semibold text-gray-900">
+          Welcome back, {username}!
+        </h1>
+        <p className="text-gray-500 mt-1">
+          Track your learning progress and upcoming training sessions
+        </p>
       </div>
 
       {/* Training Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {assignedTrainings.map((training) => (
-          <TrainingCard key={training.id} training={training} />
-        ))}
+        {assignedTrainings.length > 0 ? (
+          assignedTrainings.map((training) => (
+            <TrainingCard key={training.id} training={training} />
+          ))
+        ) : (
+          <p className="text-gray-600">No assigned training modules.</p>
+        )}
       </div>
     </div>
   );

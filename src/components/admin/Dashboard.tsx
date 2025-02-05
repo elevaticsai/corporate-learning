@@ -1,86 +1,98 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Clock, BookOpen, UserCheck, AlertCircle, DollarSign } from 'lucide-react';
 import { LineChart, Line, PieChart, Pie, ResponsiveContainer, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { login, getDashboardData, getTotalSignups, getCourseDistribution, getClientOnboardingDetails } from '../../utils/api.js'; // Import the utility functions
 
-const mockLineData = [
-  { month: 'Jan', users: 65 },
-  { month: 'Feb', users: 85 },
-  { month: 'Mar', users: 120 },
-  { month: 'Apr', users: 175 },
-  { month: 'May', users: 230 },
-  { month: 'Jun', users: 280 },
+const COLORS = [
+  '#3B82F6', // Blue
+  '#10B981', // Green
+  '#F59E0B', // Amber
+  '#EF4444', // Red
+  '#8B5CF6', // Purple
+  '#EC4899', // Pink
+  '#14B8A6', // Teal
+  '#F43F5E', // Rose
+  '#A855F7', // Violet
+  '#22C55E', // Emerald
+  '#EAB308', // Yellow
+  '#C026D3', // Fuchsia
+  '#4ADE80', // Light Green
+  '#60A5FA', // Light Blue
+  '#FB923C', // Orange
 ];
-
-const mockPieData = [
-  { name: 'Leadership', value: 35 },
-  { name: 'Technical', value: 25 },
-  { name: 'Soft Skills', value: 20 },
-  { name: 'Compliance', value: 20 },
-];
-
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'];
-
-const mockClients = [
-  {
-    id: 1,
-    name: 'Client A',
-    email: 'clientA@example.com',
-    company: 'Company XYZ',
-    contact: 'John Doe',
-    signups: 50,
-    invoice: 'INV-2023011',
-    amount: 1500.00,
-  },
-  {
-    id: 2,
-    name: 'Client B',
-    email: 'clientB@example.com',
-    company: 'Company ABC',
-    contact: 'Jane Smith',
-    signups: 30,
-    invoice: 'INV-2023012',
-    amount: 900.00,
-  },
-  {
-    id: 3,
-    name: 'Client C',
-    email: 'clientC@example.com',
-    company: 'Company DEF',
-    contact: 'Michael Brown',
-    signups: 75,
-    invoice: 'INV-2023013',
-    amount: 2250.00,
-  },
-  {
-    id: 4,
-    name: 'Client D',
-    email: 'clientD@example.com',
-    company: 'Company GHI',
-    contact: 'Emily Davis',
-    signups: 40,
-    invoice: '-',
-    amount: 0.00,
-  },
-];
-
-const MetricCard = ({ icon: Icon, title, value, trend }: { icon: any, title: string, value: string, trend?: string }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-    <div className="flex items-center justify-between">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="w-6 h-6 text-blue-500" />
-      </div>
-      {trend && (
-        <span className={`text-sm ${trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
-          {trend}
-        </span>
-      )}
-    </div>
-    <h3 className="mt-4 text-gray-600 text-sm font-medium">{title}</h3>
-    <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
-  </div>
-);
 
 const Dashboard = () => {
+  const [token, setToken] = useState('');
+  const [dashboardData, setDashboardData] = useState(null);
+  const [signupsData, setSignupsData] = useState(null);
+  const [courseDistribution, setCourseDistribution] = useState([]);
+  const [onboardingData, setOnboardingData] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await login();
+        setToken(token);
+        const data = await getDashboardData(token);
+        const signups = await getTotalSignups(token);
+        const courseData = await getCourseDistribution(token);
+        const onboardingDetails = await getClientOnboardingDetails(token);
+        setDashboardData(data);
+        console.log(data,"data")
+        console.log(signups,"signuops")
+        setSignupsData(signups);
+
+        setCourseDistribution(courseData.distribution);
+        console.log(onboardingDetails,"onboading data")
+        setOnboardingData(onboardingDetails);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  
+  if (!dashboardData || !signupsData || !courseDistribution.length || !onboardingData) {
+    return <div>Loading...</div>;
+  }
+
+
+  const { totalSignups, currentMonthSignups, previousMonthSignups, growthPercentage, monthToDate } = signupsData;
+
+
+  const { clientStats, signupStats, pendingStats, trainingStats } = dashboardData;
+
+  const lineData = [
+    { month: 'Previous Month', users: previousMonthSignups },
+    { month: monthToDate, users: currentMonthSignups }
+  ];
+
+
+  const pieData = courseDistribution.map((stat) => ({
+    name: stat.category,
+    value: stat.count,
+  }));
+
+  const MetricCard = ({ icon: Icon, title, value, trend }) => {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center">
+        <div className="flex-shrink-0 w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+          <Icon size={24} />
+        </div>
+        <div className="ml-4">
+          <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+          <p className="text-lg font-semibold text-gray-900">{value}</p>
+          {trend && (
+            <p className="text-sm text-green-600">
+              {trend}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  };
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -89,56 +101,64 @@ const Dashboard = () => {
 
       {/* Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <MetricCard icon={Users} title="Total Clients" value="156" trend="+12% this month" />
-        <MetricCard icon={Clock} title="Pending Approvals" value="23" />
-        <MetricCard icon={BookOpen} title="Active Trainings" value="48" trend="+5% this month" />
-        <MetricCard icon={UserCheck} title="Total Signups" value="1,234" trend="+8% this month" />
+        {/* <MetricCard icon={Users} title="Total Clients" value={onboardingData.length} trend="+12% this month" />
+        <MetricCard icon={Clock} title="Pending Approvals" value={recentUsers.filter(user => user.isApproved === 'pending').length} />
+        <MetricCard icon={BookOpen} title="Active Trainings" value={recentCourses.length} trend="+5% this month" />
+        <MetricCard icon={UserCheck} title="Total Signups" value={totalSignups} trend={`${growthPercentage}% growth`} />
         <MetricCard icon={AlertCircle} title="Expiring Contracts" value="15" />
-        <MetricCard icon={DollarSign} title="Monthly Revenue" value="$45,850" trend="+15% this month" />
+        <MetricCard icon={DollarSign} title="Monthly Revenue" value="$45,850" trend="+15% this month" /> */}
+
+        <MetricCard icon={Users} title="Total Managers" value={clientStats.totalManagers} />
+        <MetricCard icon={Clock} title="Pending Clients" value={clientStats.pendingClients} />
+        <MetricCard icon={UserCheck} title="Total Signups" value={signupStats.totalSignups} trend={`${signupStats.growthPercentage}% growth`} />
+        <MetricCard icon={AlertCircle} title="Total Pending Users" value={pendingStats.totalPendingUsers} />
+        <MetricCard icon={DollarSign} title="Total Trainings" value={trainingStats.totalTrainings} />
+        <MetricCard icon={BookOpen} title="Pending Trainings" value={trainingStats.pendingTrainings} />
+      
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Signup Trend */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">User Signup Trend</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockLineData}>
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="users" stroke="#3B82F6" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">User Signup Trend</h3>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={lineData}>
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="users" stroke="#3B82F6" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
+      </div>
 
         {/* Course Distribution */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Course Distribution</h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={mockPieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {mockPieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Course Distribution</h3>
+        <div className="h-80">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={100}
+                fill="#8884d8"
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
+      </div>
       </div>
 
       {/* Client Table */}
@@ -150,27 +170,32 @@ const Dashboard = () => {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Client Name</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Email</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Company Name</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Contact Person</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Signups</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Invoice Number</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Amount Paid ($)</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Designation</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Email</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Phone Number</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Employees Number</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Contract Expiry</th>
+                {/* <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Active Users</th> */}
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Invoice</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {mockClients.map((client) => (
-                <tr key={client.id} className="hover:bg-gray-50 transition">
-                  <td className="px-6 py-4 text-sm text-gray-900">{client.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{client.email}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{client.company}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{client.contact}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{client.signups}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{client.invoice}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">
-                    {client.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </td>
+              {onboardingData.map((client) => (
+                <tr key={client._id} className="hover:bg-gray-50 transition">
+                  <td className="px-6 py-4 text-sm text-gray-900">{client.company.companyDetails[0].companyName}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{client.contactInformation[0].firstName} {client.contactInformation[0].lastName}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{client.contactInformation[0].jobTitle}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{client.contactInformation[0].email}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{client.contactInformation[0].phoneNumber}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{client.company.companyDetails[0].numberOfEmployees}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{new Date(client.contractExpiry).toLocaleDateString()}</td>
+                  {/* <td className="px-6 py-4 text-sm text-gray-900"></td> */}
+                  <td className="px-6 py-4 text-sm text-gray-600">{client.invoices[0]?.invoiceNumber || 'N/A'}</td>
+                  {/* <td className="px-6 py-4 text-sm text-gray-900">
+                    {user.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </td> */}
                 </tr>
               ))}
             </tbody>

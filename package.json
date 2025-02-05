@@ -11,14 +11,21 @@
   },
   "dependencies": {
     "@radix-ui/react-tabs": "^1.0.4",
+    "@reduxjs/toolkit": "^2.5.1",
+    "axios": "^1.7.9",
+    "js-cookie": "^3.0.5",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^6.22.3",
-    "recharts": "^2.12.2"
+    "react-toastify": "^11.0.3",
+    "recharts": "^2.12.2",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.9.1", 
+    "@eslint/js": "^9.9.1",
+    "@types/js-cookie": "^3.0.6",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

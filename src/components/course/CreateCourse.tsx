@@ -1,23 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';  // Added useParams to get moduleId from URL
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import BasicInfo from './BasicInfo';
 import ChapterCreation from './ChapterCreation';
 import QuizCreation from './QuizCreation';
+import { createModule, loginIntsructor, getModuleById, updateModule } from '../../utils/api.js';
 
 const CreateCourse = () => {
+  const { courseId } = useParams(); // To get moduleId from URL if editing an existing course
+  const moduleId = courseId;
   const [courseData, setCourseData] = useState({
     basicInfo: {
       title: '',
       description: '',
       image: '',
       category: '',
-      level: '',
-      prerequisites: [],
-      learningOutcomes: []
     },
     chapters: [],
-    quizzes: []
+    quizzes: [],
   });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (moduleId) {
+      setIsEditMode(true);
+      const fetchModuleData = async () => {
+        try {
+          const token = await loginIntsructor();
+          const module = await getModuleById(token, moduleId);  // Fetch the existing module data
+
+          console.log("Fetched Module Data:", module); // Log fetched data
+
+          setCourseData({
+            basicInfo: {
+              title: module.title || '',
+              description: module.description || '',
+              image: module.imgUrl || '',
+              category: module.category || '',
+            },
+            chapters: module.chapters || [],
+            quizzes: module.questions || [],
+          });
+        } catch (error) {
+          console.error('Error fetching module for editing:', error);
+        }
+      };
+      fetchModuleData();
+    }
+  }, [moduleId]);
 
   const handleBasicInfoUpdate = (data) => {
     setCourseData(prev => ({
@@ -40,16 +71,59 @@ const CreateCourse = () => {
     }));
   };
 
-  const handleSaveCourse = () => {
-    // TODO: Implement course saving logic
-    console.log('Saving course:', courseData);
+  const handleSaveCourse = async () => {
+    try {
+      const token = await loginIntsructor();
+      const moduleData = {
+        title: courseData.basicInfo.title,
+        description: courseData.basicInfo.description,
+        imgUrl: courseData.basicInfo.image,
+        category: courseData.basicInfo.category,
+        chapters: courseData.chapters.map((chapter, index) => ({
+          title: chapter.title,
+          description: chapter.content,
+          order: index + 1,
+          template: 'simple',
+          content: {
+            imgUrl: chapter.imgUrl || 'www.google.com',
+            audioUrl: chapter.audioUrl || 'www.google.com',
+            videoUrl: chapter.videoUrl || 'www.google.com',
+          },
+        })),
+        questions: courseData.quizzes.map((quiz, index) => ({
+          title: quiz.title || 'Test title',
+          question: quiz.question,
+          options: quiz.options,
+          type: quiz.type,
+          answer: quiz.correctAnswers,
+          order: index + 1,
+          template: 'chapter-one',
+        })),
+      };
+
+      let response;
+      if (isEditMode) {
+        response = await updateModule(token, moduleId, moduleData);  // Update course if in edit mode
+      } else {
+        response = await createModule(token, moduleData);  // Create new course if not in edit mode
+      }
+
+      console.log('Course saved successfully:', response);
+      alert('Course saved successfully!');
+      navigate('/admin/instructor');  // Navigate back to courses list or course details
+    } catch (error) {
+      console.error('Error saving course:', error);
+      alert('Failed to save course. Please try again.');
+    }
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-semibold text-gray-900">Create New Course</h1>
-        <p className="mt-2 text-gray-600">Create and customize your course content</p>
+        <h1 className="text-3xl font-semibold text-gray-900">
+          {isEditMode ? 'Edit Course' : 'Create New Course'}
+        </h1>
+        <p className="mt-2 text-gray-600">{isEditMode ? 'Edit your course details' : 'Create and customize your course content'}</p>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
@@ -95,7 +169,7 @@ const CreateCourse = () => {
             onClick={handleSaveCourse}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition"
           >
-            Save Course
+            {isEditMode ? 'Update Course' : 'Save Course'}
           </button>
         </div>
       </div>

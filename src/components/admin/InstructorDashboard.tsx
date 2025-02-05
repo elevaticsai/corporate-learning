@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen,
@@ -8,30 +8,10 @@ import {
   Search,
   Edit,
   Trash2,
-  Filter,
   ChevronDown
 } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
-
-// Mock data for demonstration
-const courseStatusData = [
-  { name: 'Published', value: 28, color: '#10B981' },
-  { name: 'Pending', value: 45, color: '#F59E0B' },
-  { name: 'Draft', value: 12, color: '#6B7280' },
-];
-
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { loginIntsructor, getCourseStatusDistribution, getModuleCounts, getInstructorModules, deleteModule } from '../../utils/api.js';  // Import the API functions
 const courseEngagementData = [
   { month: 'Jan', students: 65 },
   { month: 'Feb', students: 85 },
@@ -39,6 +19,23 @@ const courseEngagementData = [
   { month: 'Apr', students: 175 },
   { month: 'May', students: 230 },
   { month: 'Jun', students: 280 },
+];
+const COLORS = [
+  '#3B82F6', // Blue
+  '#10B981', // Green
+  '#F59E0B', // Amber
+  '#EF4444', // Red
+  '#8B5CF6', // Purple
+  '#EC4899', // Pink
+  '#14B8A6', // Teal
+  '#F43F5E', // Rose
+  '#A855F7', // Violet
+  '#22C55E', // Emerald
+  '#EAB308', // Yellow
+  '#C026D3', // Fuchsia
+  '#4ADE80', // Light Green
+  '#60A5FA', // Light Blue
+  '#FB923C', // Orange
 ];
 
 const coursesData = [
@@ -95,17 +92,53 @@ const InstructorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  
+  // State to store fetched data
+  const [courseStatusData, setCourseStatusData] = useState([]);
+  const [moduleCounts, setModuleCounts] = useState(null);
+  const [coursesData, setCoursesData] = useState([]);  // You can also populate this with API data
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      // Get token first
+      const token = await loginIntsructor();
 
-  const handleCreateCourse = () => {
-    navigate('/admin/courses/create');
+      // Fetch course status distribution and module counts
+      const statusDistribution = await getCourseStatusDistribution(token);
+      const counts = await getModuleCounts(token);
+      // Update state with fetched data
+      console.log(statusDistribution,"statusDistribution")
+      console.log(counts,"counts")
+      setCourseStatusData(statusDistribution);
+      setModuleCounts(counts);
+
+      // You can also fetch courses here if needed
+      const courses = await getInstructorModules(token); 
+      setCoursesData(courses);
+    };
+
+    fetchData();
+  }, []);  // Empty dependency array ensures this only runs once on component mount
+
+  const handleCreateCourse = (courseId) => {
+      navigate('/courses/create');
   };
 
-  const handleEditCourse = (courseId: number) => {
-    console.log('Edit course:', courseId);
-  };
+  const handleEditCourse = (courseId) => {
+    navigate('/courses/edit/' + courseId);
+};
 
-  const handleDeleteCourse = (courseId: number) => {
-    console.log('Delete course:', courseId);
+
+
+  const handleDeleteCourse = async (courseId) => {
+    if (!window.confirm('Are you sure you want to delete this course?')) return;
+    try {
+      const token = await loginIntsructor();
+      await deleteModule(token, courseId);
+      setCoursesData((prevCourses) => prevCourses.filter((course) => course._id !== courseId));
+    } catch (error) {
+      console.error('Error deleting course:', error);
+    }
   };
 
   return (
@@ -130,19 +163,19 @@ const InstructorDashboard = () => {
         <MetricCard
           icon={BookOpen}
           title="Total Courses"
-          value="85"
+          value={moduleCounts?.total || "0"}  // Assuming 'totalCourses' is a field
           trend="+12 this month"
         />
         <MetricCard
           icon={CheckCircle}
           title="Published Courses"
-          value="28"
+          value={moduleCounts?.published || "0"}  // Assuming 'publishedCourses' is a field
           trend="+5 this week"
         />
         <MetricCard
           icon={Clock}
           title="Pending Approval"
-          value="45"
+          value={moduleCounts?.pending || "0"}  // Assuming 'pendingCourses' is a field
         />
       </div>
 
@@ -162,9 +195,10 @@ const InstructorDashboard = () => {
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
+                  fill="#8884d8"
                 >
                   {courseStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -227,47 +261,31 @@ const InstructorDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-          {coursesData.map((course) => (
-            <div key={course.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <img
-                src={course.thumbnail}
-                alt={course.name}
-                className="w-full h-48 object-cover"
-              />
+          {coursesData.map(course => (
+            <div key={course._id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <img src={course.imgUrl} alt={course.title} className="w-full h-48 object-cover" />
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-500">{course.category}</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    course.status === 'Published' ? 'bg-green-100 text-green-800' :
-                    course.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {course.status}
-                  </span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{course.status}</span>
                 </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">{course.name}</h4>
-                <div className="flex items-center text-sm text-gray-500 mb-4">
-                  <BookOpen className="w-4 h-4 mr-1" />
-                  {course.students} Students
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">
-                    Last updated: {course.lastUpdated}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEditCourse(course.id)}
-                      className="p-2 text-gray-600 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition"
+                <h4 className="text-lg font-medium text-gray-900 mb-2">{course.title}</h4>
+                <span className="text-sm text-gray-500">Last updated: {new Date(course.updatedAt).toLocaleDateString()}</span>
+                <div className="flex gap-2 mt-2">
+                <button 
+                  onClick={() => handleEditCourse(course._id)}
+                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                >
+                  <Edit className="w-4 h-4" />
+                </button>
+
+
+                  <button
+                    onClick={() => handleDeleteCourse(course._id)}
+                    className="p-2 text-gray-600 hover:text-red-600"
                     >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCourse(course.id)}
-                      className="p-2 text-gray-600 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
             </div>

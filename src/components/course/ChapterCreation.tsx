@@ -62,6 +62,38 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="url"
+              value={newChapter.audioUrl}
+              onChange={(e) => setNewChapter({ ...newChapter, audioUrl: e.target.value })}
+              placeholder="Audio URL"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <input
+              type="text"
+              value={newChapter.duration}
+              onChange={(e) => setNewChapter({ ...newChapter, duration: e.target.value })}
+              placeholder=""
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input
+              type="url"
+              value={newChapter.imgUrl}
+              onChange={(e) => setNewChapter({ ...newChapter, imgUrl: e.target.value })}
+              placeholder="Image URL"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <input
+              type="text"
+              value={newChapter.duration}
+              onChange={(e) => setNewChapter({ ...newChapter, duration: e.target.value })}
+              placeholder=""
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
           <button
             onClick={handleAddChapter}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition"

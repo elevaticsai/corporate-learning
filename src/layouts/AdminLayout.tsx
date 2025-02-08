@@ -38,7 +38,7 @@ const menuItems = [
   {
     title: "Courses",
     icon: BookOpen,
-    path: "/courses",
+    path: "/courses/create",
   },
   {
     title: "Schedule",

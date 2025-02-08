@@ -9,6 +9,7 @@ import { createModule, loginIntsructor, getModuleById, updateModule } from '../.
 const CreateCourse = () => {
   const { courseId } = useParams(); // To get moduleId from URL if editing an existing course
   const moduleId = courseId;
+  const [isLoading, setIsLoading] = useState(false);
   const [courseData, setCourseData] = useState({
     basicInfo: {
       title: '',
@@ -72,6 +73,9 @@ const CreateCourse = () => {
   };
 
   const handleSaveCourse = async () => {
+    console.log(courseData, "courseData");
+    
+    setIsLoading(true);
     try {
       const token = await loginIntsructor();
       const moduleData = {
@@ -81,13 +85,13 @@ const CreateCourse = () => {
         category: courseData.basicInfo.category,
         chapters: courseData.chapters.map((chapter, index) => ({
           title: chapter.title,
-          description: chapter.content,
+          description: chapter.description, // Ensure description is a string
           order: index + 1,
           template: 'simple',
           content: {
-            imgUrl: chapter.imgUrl || 'www.google.com',
-            audioUrl: chapter.audioUrl || 'www.google.com',
-            videoUrl: chapter.videoUrl || 'www.google.com',
+            imgUrl: chapter.content?.imgUrl || chapter.image || '',
+            audioUrl: chapter.content?.audioUrl || chapter.audio || '',
+            videoUrl: chapter.content?.videoUrl || 'www.google.com',
           },
         })),
         questions: courseData.quizzes.map((quiz, index) => ({
@@ -96,26 +100,28 @@ const CreateCourse = () => {
           options: quiz.options,
           type: quiz.type,
           answer: quiz.correctAnswers,
-          order: index + 1,
+          order: courseData.chapters.length + index + 1,
           template: 'chapter-one',
         })),
       };
 
-      let response;
-      if (isEditMode) {
-        response = await updateModule(token, moduleId, moduleData);  // Update course if in edit mode
-      } else {
-        response = await createModule(token, moduleData);  // Create new course if not in edit mode
-      }
-
-      console.log('Course saved successfully:', response);
+      console.log(moduleData, "modueData");
+      
+  
+      const response = isEditMode
+        ? await updateModule(token, moduleId, moduleData)
+        : await createModule(token, moduleData);
+  
       alert('Course saved successfully!');
-      navigate('/admin/instructor');  // Navigate back to courses list or course details
+      navigate('/instructor');
     } catch (error) {
       console.error('Error saving course:', error);
       alert('Failed to save course. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -167,9 +173,38 @@ const CreateCourse = () => {
         <div className="flex justify-end px-6 py-4 border-t border-gray-100">
           <button
             onClick={handleSaveCourse}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition"
+            disabled={isLoading}
+            className={`px-6 py-2 rounded-lg text-white transition ${isLoading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+              } focus:ring-4 focus:ring-blue-200`}
           >
-            {isEditMode ? 'Update Course' : 'Save Course'}
+            {isLoading ? (
+              <div className="flex items-center">
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 11-8 8z"
+                  ></path>
+                </svg>
+
+                {isEditMode ? "Updating..." : "Saving..."}
+              </div>
+            ) : (
+              isEditMode ? "Update Course" : "Save Course"
+            )}
           </button>
         </div>
       </div>

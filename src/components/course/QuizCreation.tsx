@@ -1,20 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, CheckCircle } from 'lucide-react';
 
 const QuizCreation = ({ quizzes, onUpdate }) => {
+  const formattedQuizzes = quizzes.map(quiz => ({
+    ...quiz,
+    correctAnswers: quiz.correctAnswers || quiz.answer.map(ans => Number(ans)), // Convert answer to correctAnswers
+  }));
+
+  const [quizList, setQuizList] = useState(formattedQuizzes);
+
   const [newQuestion, setNewQuestion] = useState({
     title: '',
     question: '',
     options: ['', '', '', ''],
-    correctAnswers: [], // Now an array to support multiple correct answers
-    type: 'SCQ' // 'single' or 'multiple'
+    correctAnswers: [],
+    type: 'SCQ'
   });
+
+  useEffect(() => {
+    setQuizList(formattedQuizzes);
+  }, [quizzes]);
 
   const handleAddQuestion = () => {
     if (newQuestion.title && newQuestion.question && newQuestion.options.every(option => option) && newQuestion.correctAnswers.length > 0) {
-      onUpdate([...quizzes, { ...newQuestion, id: Date.now() }]);
+      const updatedQuizzes = [...quizList, { ...newQuestion, id: Date.now() }];
+      setQuizList(updatedQuizzes);
+      onUpdate(updatedQuizzes);
       setNewQuestion({
-        title:'',
+        title: '',
         question: '',
         options: ['', '', '', ''],
         correctAnswers: [],
@@ -24,7 +37,9 @@ const QuizCreation = ({ quizzes, onUpdate }) => {
   };
 
   const handleRemoveQuestion = (id) => {
-    onUpdate(quizzes.filter(quiz => quiz.id !== id));
+    const updatedQuizzes = quizList.filter(quiz => quiz.id !== id);
+    setQuizList(updatedQuizzes);
+    onUpdate(updatedQuizzes);
   };
 
   const handleOptionChange = (index, value) => {
@@ -36,10 +51,8 @@ const QuizCreation = ({ quizzes, onUpdate }) => {
   const toggleCorrectAnswer = (index) => {
     const currentAnswers = [...newQuestion.correctAnswers];
     if (newQuestion.type === 'SCQ') {
-      // For single choice, replace the current answer
       setNewQuestion({ ...newQuestion, correctAnswers: [index] });
     } else {
-      // For multiple choice, toggle the answer
       const answerIndex = currentAnswers.indexOf(index);
       if (answerIndex === -1) {
         currentAnswers.push(index);
@@ -55,7 +68,6 @@ const QuizCreation = ({ quizzes, onUpdate }) => {
       <div className="bg-gray-50 p-6 rounded-lg">
         <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Question</h3>
         <div className="space-y-4">
-          {/* Question Type Selection */}
           <input
             value={newQuestion.title}
             onChange={(e) => setNewQuestion({ ...newQuestion, title: e.target.value })}
@@ -98,14 +110,14 @@ const QuizCreation = ({ quizzes, onUpdate }) => {
               <div key={index} className="flex items-center space-x-4">
                 <button
                   type="button"
-                  onClick={() => toggleCorrectAnswer(index)}
+                  onClick={() => toggleCorrectAnswer(String(option))}
                   className={`flex items-center justify-center w-6 h-6 rounded-full border-2 transition-colors ${
-                    newQuestion.correctAnswers.includes(index)
+                    newQuestion.correctAnswers.includes(String(option))
                       ? 'border-green-500 bg-green-500 text-white'
                       : 'border-gray-300 hover:border-green-500'
                   }`}
                 >
-                  {newQuestion.correctAnswers.includes(index) && (
+                  {newQuestion.correctAnswers.includes(String(option)) && (
                     <CheckCircle className="w-4 h-4" />
                   )}
                 </button>
@@ -139,45 +151,36 @@ const QuizCreation = ({ quizzes, onUpdate }) => {
       </div>
 
       <div className="space-y-4">
-        {quizzes.map((quiz) => (
+  {quizList.map((quiz) => (
+    <div key={quiz.id} className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+      <div className="flex justify-between items-start mb-4">
+        <div>
+          <h3 className="font-semibold text-lg text-gray-900">{quiz.title}</h3> {/* Question Title */}
+          <h4 className="font-medium text-gray-800">{quiz.question}</h4> {/* Question Description */}
+          <span className="text-sm text-gray-500">
+            {quiz.type === 'SCQ' ? 'Single Choice' : 'Multiple Choice'}
+          </span>
+        </div>
+        <button onClick={() => handleRemoveQuestion(quiz.id)} className="p-2 text-gray-400 hover:text-red-500 transition">
+          <Trash2 className="w-5 h-5" />
+        </button>
+      </div>
+      <div className="space-y-2">
+        {quiz.options.map((option, index) => (
           <div
-            key={quiz.id}
-            className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm"
+            key={index}
+            className={`p-3 rounded-lg flex items-center space-x-3 
+              ${quiz.correctAnswers?.includes(String(option)) || quiz.answer?.includes(String(option)) ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}
           >
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h4 className="font-medium text-gray-900">{quiz.question}</h4>
-                <span className="text-sm text-gray-500">
-                  {quiz.type === 'SCQ' ? 'Single Choice' : 'Multiple Choice'}
-                </span>
-              </div>
-              <button
-                onClick={() => handleRemoveQuestion(quiz.id)}
-                className="p-2 text-gray-400 hover:text-red-500 transition"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="space-y-2">
-              {quiz.options.map((option, index) => (
-                <div
-                  key={index}
-                  className={`p-3 rounded-lg flex items-center space-x-3 ${
-                    quiz.correctAnswers?.includes(index)
-                      ? 'bg-green-50 border border-green-200'
-                      : 'bg-gray-50 border border-gray-200'
-                  }`}
-                >
-                  {quiz.correctAnswers?.includes(index) && (
-                    <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                  )}
-                  <span>{option}</span>
-                </div>
-              ))}
-            </div>
+            {quiz.correctAnswers.includes(String(option)) || quiz.answer?.includes(String(option)) ? <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0"/> : null}
+            <span>{option}</span>
           </div>
         ))}
       </div>
+    </div>
+  ))}
+</div>
+
     </div>
   );
 };

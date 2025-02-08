@@ -15,6 +15,7 @@ import OnboardingForm from "./components/OnboardingForm";
 import LoginPage from "./components/auth/LoginPage";
 import CreateCourse from "./components/course/CreateCourse";
 import store from "./redux/store";
+import CourseReview from "./components/course/CourseReview";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="training/:id" element={<TrainingDetails />} />
             <Route path="courses/create" element={<CreateCourse />} />
             <Route path="courses/edit/:courseId" element={<CreateCourse />} />
+            <Route path="course-review/:id" element={<CourseReview />} />
           </Route>
         </Routes>
       </Router>

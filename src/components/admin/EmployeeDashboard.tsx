@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 // Define TypeScript interfaces
 interface TrainingModule {
   _id: string;
+  status: string;
   title: string;
   description: string;
   imgUrl: string;
@@ -109,9 +110,9 @@ const EmployeeDashboard = () => {
       .then((data: UserProgress) => {
         setUserProgress(data);
 
-        // 🔥 Filter out null moduleId entries
+        // 🔥 Filter modules where status is "published"
         const formattedTrainings = data.moduleProgress
-          .filter((module) => module._id) // Only include valid modules
+          .filter((module) => module._id && module.status === "published") // Only published modules
           .map((module) => ({
             id: module._id,
             title: module.title,

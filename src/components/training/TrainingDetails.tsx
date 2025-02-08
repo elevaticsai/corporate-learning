@@ -49,8 +49,15 @@ const TrainingDetails = () => {
 
   const [trainingDetails, setTrainingDetails] = useState<any>(null);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [nextItem, setNextItem] = useState<{
+    itemType: string;
+    data: string;
+  } | null>(null);
+
   const [question, setQuestion] = useState<Question | null>(null);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [selectedAnswers, setSelectedAnswers] = useState<string[]>([]);
+  console.log(selectedAnswers);
+
   const [currentQuestionId, setCurrentQuestionId] = useState<string | null>(
     null
   );
@@ -60,6 +67,7 @@ const TrainingDetails = () => {
   const [userAnswer, setUserAnswer] = useState<string | null>(null); // Track the selected answer
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
+  const isLastQuestion = nextQuestionId === null;
 
   // Media control states
   const [isPlaying, setIsPlaying] = useState(false);
@@ -136,13 +144,10 @@ const TrainingDetails = () => {
       .then((response) => {
         const fetchedChapter: Chapter = response.data.currentItem;
         setSelectedChapter(fetchedChapter);
+        setNextItem(response.data.nextItem || null);
         setActiveTab("content");
         setQuestionPanel("content");
-
-        // Check if nextItem is a question and fetch it
-        if (response.data.nextItem?.itemType === "question") {
-          fetchQuestion(response.data.nextItem.data);
-        }
+        setSelectedAnswers([]);
       })
       .catch((error) =>
         console.error("Error fetching chapter content:", error)
@@ -157,21 +162,28 @@ const TrainingDetails = () => {
         },
       })
       .then((response) => {
+        // Assuming the API response contains the question data you need
         setQuestion(response.data.currentItem);
         setCurrentQuestionId(response.data.currentItem._id);
         setNextQuestionId(response.data.nextItem?.data || null);
         setPrevQuestionId(response.data.prevItem?.data || null);
-        setQuestionPanel("overview");
+        setQuestionPanel("overview"); // Assuming this is to control the display of the question panel
       })
-      .catch((error) => console.error("Error fetching question:", error));
+      .catch((error) => {
+        console.error("Error fetching question:", error);
+      });
   };
 
   const handleNextQuestion = () => {
+    setSelectedAnswers([]); // ✅ Clear before moving to the next question
+
     if (nextQuestionId) {
       fetchQuestion(nextQuestionId);
     }
   };
   const handlePrevQuestion = () => {
+    setSelectedAnswers([]); // ✅ Clear before moving to the next question
+
     if (!prevQuestionId) {
       console.log(
         "First question detected. Going back to the previous chapter..."
@@ -191,13 +203,17 @@ const TrainingDetails = () => {
   };
 
   const handleAnswerSubmit = () => {
-    if (!selectedAnswer || !question) return;
+    if (!selectedAnswers.length || !question) return;
 
-    const isCorrect = selectedAnswer === question.answer[0];
+    // Check if all selected answers match the correct answers
+    const isCorrect =
+      selectedAnswers.length === question.answer.length &&
+      selectedAnswers.every((ans) => question.answer.includes(ans));
 
     // Set the states to show the result popup
     setIsAnswerCorrect(isCorrect);
     setIsPopupVisible(true);
+
     // Post the selected answer to check if it's correct
     axios
       .post(
@@ -205,7 +221,7 @@ const TrainingDetails = () => {
         {
           questionId: question._id,
           moduleId: id,
-          answer: selectedAnswer,
+          answer: selectedAnswers, // Send selected answers as an array
         },
         {
           headers: {
@@ -230,6 +246,14 @@ const TrainingDetails = () => {
 
   const handleAnswerSelect = (answer: string) => {
     setUserAnswer(answer);
+  };
+
+  const handleOptionChange = (option: string) => {
+    setSelectedAnswers((prev: string[]) =>
+      prev.includes(option)
+        ? prev.filter((ans) => ans !== option)
+        : [...prev, option]
+    );
   };
 
   const getNextChapter = () => {
@@ -438,19 +462,30 @@ const TrainingDetails = () => {
                         <ChevronLeft className="w-5 h-5" />
                         <span>Previous Chapter</span>
                       </button>
-                      <button
-                        onClick={() =>
-                          getNextChapter() &&
-                          handleChapterSelect(getNextChapter()?._id || "")
-                        }
-                        disabled={!getNextChapter()}
-                        className={`flex items-center space-x-2 ${
-                          !getNextChapter() ? "text-gray-300" : "text-gray-500"
-                        }`}
-                      >
-                        <span>Next Chapter</span>
-                        <ChevronNextIcon className="w-5 h-5" />
-                      </button>
+                      {getNextChapter() ? (
+                        <button
+                          onClick={() =>
+                            getNextChapter() &&
+                            handleChapterSelect(getNextChapter()?._id || "")
+                          }
+                          disabled={!getNextChapter()}
+                          className={`flex items-center space-x-2 ${
+                            !getNextChapter()
+                              ? "text-gray-300"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          <span>Next Chapter</span>
+                          <ChevronNextIcon className="w-5 h-5" />
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => fetchQuestion(nextItem?.data || "")}
+                          className="flex items-center space-x-2"
+                        >
+                          Start Questions
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -475,27 +510,27 @@ const TrainingDetails = () => {
                     <li key={index}>
                       <label
                         className={`flex items-center space-x-4 p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                          selectedAnswer === option
+                          selectedAnswers.includes(option)
                             ? "border-blue-500 bg-blue-50 shadow-md"
                             : "border-gray-300 bg-white hover:bg-gray-100"
                         }`}
                       >
                         <input
-                          type="radio"
+                          type="checkbox"
                           name="answer"
                           value={option}
-                          checked={selectedAnswer === option}
-                          onChange={() => setSelectedAnswer(option)}
+                          checked={selectedAnswers.includes(option)}
+                          onChange={() => handleOptionChange(option)}
                           className="hidden"
                         />
                         <span
                           className={`w-6 h-6 flex items-center justify-center border rounded-full text-lg font-bold transition-all ${
-                            selectedAnswer === option
+                            selectedAnswers.includes(option)
                               ? "bg-blue-500 border-blue-500 text-white"
                               : "border-gray-400 text-gray-400"
                           }`}
                         >
-                          {selectedAnswer === option && "✓"}
+                          {selectedAnswers.includes(option) && "✓"}
                         </span>
                         <span className="text-gray-700 text-lg font-medium">
                           {option}
@@ -505,6 +540,7 @@ const TrainingDetails = () => {
                   ))}
                 </ul>
 
+                {/* Action Buttons */}
                 {/* Action Buttons */}
                 <div className="mt-6 flex justify-between">
                   <button
@@ -526,21 +562,9 @@ const TrainingDetails = () => {
                   >
                     Submit
                   </button>
-
-                  {/* <button
-                    onClick={handleNextQuestion}
-                    disabled={!nextQuestionId}
-                    className={`px-5 py-2 rounded-lg transition-all duration-200 ${
-                      nextQuestionId
-                        ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                        : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    }`}
-                  >
-                    Next
-                    <ChevronNextIcon className="w-5 h-5 inline-block ml-2" />
-                  </button> */}
                 </div>
 
+                {/* Popup for Correct/Incorrect Answer */}
                 {/* Popup for Correct/Incorrect Answer */}
                 {isPopupVisible && (
                   <div
@@ -563,12 +587,23 @@ const TrainingDetails = () => {
                           <h2 className="text-green-600 font-semibold text-xl mt-4">
                             Correct Answer!
                           </h2>
-                          <button
-                            onClick={handleNextQuestionAndClosePopup}
-                            className="mt-4 px-5 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
-                          >
-                            Next Question
-                          </button>
+
+                          {/* Check if this is the last question */}
+                          {isLastQuestion ? (
+                            <button
+                              onClick={() => navigate("/employee")}
+                              className="mt-4 px-5 py-2 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition"
+                            >
+                              Go to Dashboard
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handleNextQuestionAndClosePopup}
+                              className="mt-4 px-5 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+                            >
+                              Next Question
+                            </button>
+                          )}
                         </div>
                       ) : (
                         <div>

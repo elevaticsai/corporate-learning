@@ -117,7 +117,7 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(`http://localhost:4000/api/module/${id}`, {
+      .get(`https://gaussconnect/api/module/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -136,7 +136,7 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(`http://localhost:4000/api/section?id=${chapterId}&type=chapter`, {
+      .get(`https://gaussconnect/api/section?id=${chapterId}&type=chapter`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -156,7 +156,7 @@ const TrainingDetails = () => {
 
   const fetchQuestion = (questionId: string) => {
     axios
-      .get(`http://localhost:4000/api/section?id=${questionId}&type=question`, {
+      .get(`https://gaussconnect/api/section?id=${questionId}&type=question`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -217,7 +217,7 @@ const TrainingDetails = () => {
     // Post the selected answer to check if it's correct
     axios
       .post(
-        "http://localhost:4000/api/question-complete",
+        "https://gaussconnect/api/question-complete",
         {
           questionId: question._id,
           moduleId: id,

@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signin: async ({ credentials, onSuccess }) => {
     set({ isLoading: true, error: null }); // Start loading
     try {
-      const response = await fetch("http://localhost:4000/api/login", {
+      const response = await fetch("https://gaussconnect/api/login", {
         method: "POST",
         body: JSON.stringify(credentials),
         headers: { "Content-Type": "application/json" },

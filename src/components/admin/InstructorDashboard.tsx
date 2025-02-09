@@ -92,12 +92,12 @@ const InstructorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  
+
   // State to store fetched data
   const [courseStatusData, setCourseStatusData] = useState([]);
   const [moduleCounts, setModuleCounts] = useState(null);
   const [coursesData, setCoursesData] = useState([]);  // You can also populate this with API data
-  
+
   useEffect(() => {
     const fetchData = async () => {
       // Get token first
@@ -107,13 +107,13 @@ const InstructorDashboard = () => {
       const statusDistribution = await getCourseStatusDistribution(token);
       const counts = await getModuleCounts(token);
       // Update state with fetched data
-      console.log(statusDistribution,"statusDistribution")
-      console.log(counts,"counts")
+      console.log(statusDistribution, "statusDistribution")
+      console.log(counts, "counts")
       setCourseStatusData(statusDistribution);
       setModuleCounts(counts);
 
       // You can also fetch courses here if needed
-      const courses = await getInstructorModules(token); 
+      const courses = await getInstructorModules(token);
       setCoursesData(courses);
     };
 
@@ -121,28 +121,107 @@ const InstructorDashboard = () => {
   }, []);  // Empty dependency array ensures this only runs once on component mount
 
   const handleCreateCourse = (courseId) => {
-      navigate('/courses/create');
+    navigate('/courses/create');
   };
 
   const handleEditCourse = (courseId) => {
     navigate('/courses/edit/' + courseId);
-};
+  };
 
 
 
-  const handleDeleteCourse = async (courseId) => {
-    if (!window.confirm('Are you sure you want to delete this course?')) return;
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [courseToDelete, setCourseToDelete] = useState(null);
+
+  const handleDeleteCourse = async () => {
+    if (!courseToDelete) return;
+
     try {
       const token = await loginIntsructor();
-      await deleteModule(token, courseId);
-      setCoursesData((prevCourses) => prevCourses.filter((course) => course._id !== courseId));
+      await deleteModule(token, courseToDelete);
+
+      setCoursesData((prevCourses) =>
+        prevCourses.filter((course) => course._id !== courseToDelete)
+      );
+
+      setShowConfirmModal(false); // Close modal after deleting
+      setCourseToDelete(null);
     } catch (error) {
-      console.error('Error deleting course:', error);
+      console.error("Error deleting course:", error);
     }
+  };
+
+  // Open the confirmation modal
+  const confirmDelete = (courseId) => {
+    setCourseToDelete(courseId);
+    setShowConfirmModal(true);
   };
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Modal */}
+      {showConfirmModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay
+          backdropFilter: "blur(5px)", // Blurred background
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 1000,
+        }}>
+          <div style={{
+            backgroundColor: "white",
+            padding: "25px",
+            borderRadius: "12px",
+            boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
+            textAlign: "center",
+            width: "350px",
+            animation: "fadeIn 0.3s ease-in-out"
+          }}>
+            <h2 style={{ fontSize: "20px", color: "#333" }}>Confirm Deletion</h2>
+            <p style={{ margin: "15px 0", color: "#666" }}>
+              Are you sure you want to delete this course? This action cannot be undone.
+            </p>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              {/* Cancel Button */}
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                style={{
+                  padding: "10px 15px",
+                  backgroundColor: "#ccc",
+                  color: "#333",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  border: "none"
+                }}>
+                Cancel
+              </button>
+
+              {/* Delete Button */}
+              <button
+                onClick={handleDeleteCourse}
+                style={{
+                  padding: "10px 15px",
+                  backgroundColor: "red",
+                  color: "white",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                  border: "none"
+                }}>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       {/* Header with Welcome Message and Create Button */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
@@ -267,25 +346,26 @@ const InstructorDashboard = () => {
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-gray-500">{course.category}</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.status === 'published' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>{course.status}</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.status === 'published' ? 'bg-green-100 text-green-800' : course.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{course.status}</span>
                 </div>
                 <h4 className="text-lg font-medium text-gray-900 mb-2">{course.title}</h4>
                 <span className="text-sm text-gray-500">Last updated: {new Date(course.updatedAt).toLocaleDateString()}</span>
                 <div className="flex gap-2 mt-2">
-                <button 
-                  onClick={() => handleEditCourse(course._id)}
-                  className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
+                  <button
+                    onClick={() => handleEditCourse(course._id)}
+                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
 
 
                   <button
-                    onClick={() => handleDeleteCourse(course._id)}
+                    onClick={() => confirmDelete(course._id)}
                     className="p-2 text-gray-600 hover:text-red-600"
-                    >
+                  >
                     <Trash2 className="w-4 h-4" />
                   </button>
+
                 </div>
               </div>
             </div>

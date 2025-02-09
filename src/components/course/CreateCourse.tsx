@@ -5,6 +5,7 @@ import BasicInfo from './BasicInfo';
 import ChapterCreation from './ChapterCreation';
 import QuizCreation from './QuizCreation';
 import { createModule, loginIntsructor, getModuleById, updateModule } from '../../utils/api.js';
+import { FaCheckCircle } from "react-icons/fa"; // Green tick icon
 
 const CreateCourse = () => {
   const { courseId } = useParams(); // To get moduleId from URL if editing an existing course
@@ -72,59 +73,96 @@ const CreateCourse = () => {
     }));
   };
 
-  const handleSaveCourse = async () => {
-    console.log(courseData, "courseData");
-    
-    setIsLoading(true);
-    try {
-      const token = await loginIntsructor();
-      const moduleData = {
-        title: courseData.basicInfo.title,
-        description: courseData.basicInfo.description,
-        imgUrl: courseData.basicInfo.image,
-        category: courseData.basicInfo.category,
-        chapters: courseData.chapters.map((chapter, index) => ({
-          title: chapter.title,
-          description: chapter.description, // Ensure description is a string
-          order: index + 1,
-          template: 'simple',
-          content: {
-            imgUrl: chapter.content?.imgUrl || chapter.image || '',
-            audioUrl: chapter.content?.audioUrl || chapter.audio || '',
-            videoUrl: chapter.content?.videoUrl || 'www.google.com',
-          },
-        })),
-        questions: courseData.quizzes.map((quiz, index) => ({
-          title: quiz.title || 'Test title',
-          question: quiz.question,
-          options: quiz.options,
-          type: quiz.type,
-          answer: quiz.correctAnswers,
-          order: courseData.chapters.length + index + 1,
-          template: 'chapter-one',
-        })),
-      };
 
-      console.log(moduleData, "modueData");
-      
-  
-      const response = isEditMode
-        ? await updateModule(token, moduleId, moduleData)
-        : await createModule(token, moduleData);
-  
-      alert('Course saved successfully!');
-      navigate('/instructor');
-    } catch (error) {
-      console.error('Error saving course:', error);
-      alert('Failed to save course. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
+
+
+const [successMessage, setSuccessMessage] = useState(false);
+
+const handleSaveCourse = async () => {
+  setIsLoading(true);
+  try {
+    const token = await loginIntsructor();
+    const moduleData = {
+      title: courseData.basicInfo.title,
+      description: courseData.basicInfo.description,
+      imgUrl: courseData.basicInfo.image,
+      category: courseData.basicInfo.category,
+      chapters: courseData.chapters.map((chapter, index) => ({
+        title: chapter.title,
+        description: chapter.description,
+        order: index + 1,
+        template: "simple",
+        content: {
+          imgUrl: chapter.content?.imgUrl || chapter.image || "",
+          audioUrl: chapter.content?.audioUrl || chapter.audio || "",
+          videoUrl: chapter.content?.videoUrl || "www.google.com",
+        },
+      })),
+      questions: courseData.quizzes.map((quiz, index) => ({
+        title: quiz.title || "Test title",
+        question: quiz.question,
+        options: quiz.options,
+        type: quiz.type,
+        answer: quiz.correctAnswers,
+        order: courseData.chapters.length + index + 1,
+        template: "chapter-one",
+      })),
+    };
+
+    const response = isEditMode
+      ? await updateModule(token, moduleId, moduleData)
+      : await createModule(token, moduleData);
+
+    setSuccessMessage(true); // Show success popup
+
+    setTimeout(() => {
+      setSuccessMessage(false); // Hide message after 3 seconds
+      navigate("/instructor");
+    }, 3000);
+  } catch (error) {
+    console.error("Error saving course:", error);
+    alert("Failed to save course. Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
+      {successMessage && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay
+    backdropFilter: "blur(5px)", // Blurred background
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+  }}>
+    <div style={{
+      backgroundColor: "white",
+      padding: "30px",
+      borderRadius: "12px",
+      boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
+      textAlign: "center",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      animation: "fadeIn 0.3s ease-in-out"
+    }}>
+      <FaCheckCircle size={50} color="green" />
+      <h2 style={{ margin: "15px 0", fontSize: "20px", color: "#333" }}>
+        Course Saved Successfully!
+      </h2>
+    </div>
+  </div>
+)}
+
       <div className="mb-8">
         <h1 className="text-3xl font-semibold text-gray-900">
           {isEditMode ? 'Edit Course' : 'Create New Course'}

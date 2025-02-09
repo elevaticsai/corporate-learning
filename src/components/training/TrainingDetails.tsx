@@ -117,7 +117,7 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(`https://gaussconnect/api/module/${id}`, {
+      .get(`https://gaussconnect.com/api/module/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -136,11 +136,14 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(`https://gaussconnect/api/section?id=${chapterId}&type=chapter`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      .get(
+        `https://gaussconnect.com/api/section?id=${chapterId}&type=chapter`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
       .then((response) => {
         const fetchedChapter: Chapter = response.data.currentItem;
         setSelectedChapter(fetchedChapter);
@@ -156,11 +159,14 @@ const TrainingDetails = () => {
 
   const fetchQuestion = (questionId: string) => {
     axios
-      .get(`https://gaussconnect/api/section?id=${questionId}&type=question`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      .get(
+        `https://gaussconnect.com/api/section?id=${questionId}&type=question`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
       .then((response) => {
         // Assuming the API response contains the question data you need
         setQuestion(response.data.currentItem);
@@ -217,7 +223,7 @@ const TrainingDetails = () => {
     // Post the selected answer to check if it's correct
     axios
       .post(
-        "https://gaussconnect/api/question-complete",
+        "https://gaussconnect.com/api/question-complete",
         {
           questionId: question._id,
           moduleId: id,

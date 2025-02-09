@@ -94,7 +94,7 @@ const EmployeeDashboard = () => {
       return; // Stop execution if no token
     }
 
-    fetch("https://gaussconnect/api/user-progress", {
+    fetch("https://gaussconnect.com/api/user-progress", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

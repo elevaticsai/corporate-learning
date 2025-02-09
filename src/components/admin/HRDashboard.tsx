@@ -132,7 +132,7 @@ const HRDashboard = () => {
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect/api/manager/employees/progress",
+          "https://gaussconnect.com/api/manager/employees/progress",
           {
             method: "GET",
             headers: {
@@ -158,7 +158,7 @@ const HRDashboard = () => {
     const fetchTrainingData = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect/api/manager/training-programs",
+          "https://gaussconnect.com/api/manager/training-programs",
           {
             method: "GET",
             headers: {
@@ -181,7 +181,7 @@ const HRDashboard = () => {
     const fetchModuleStatus = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect/api/manager/modules/total-status",
+          "https://gaussconnect.com/api/manager/modules/total-status",
           {
             method: "GET",
             headers: {
@@ -236,7 +236,7 @@ const HRDashboard = () => {
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect/api/manager/employees/details",
+          "https://gaussconnect.com/api/manager/employees/details",
           {
             method: "GET",
             headers: {
@@ -276,7 +276,7 @@ const HRDashboard = () => {
   const fetchTrainingEngagement = async () => {
     try {
       const response = await fetch(
-        "https://gaussconnect/api/manager/modules/categories/status",
+        "https://gaussconnect.com/api/manager/modules/categories/status",
         {
           method: "GET",
           headers: {

@@ -19,6 +19,7 @@ const BasicInfo = ({ data, onUpdate }) => {
   console.log(data, "basic infor data")
   const [imagePreview, setImagePreview] = useState(data.image || '');
   const [audioFile, setAudioFile] = useState(data.audio || null);
+  const [isUploading, setIsUploading] = useState(false);
   const imageInputRef = useRef(null);
   const audioInputRef = useRef(null);
 
@@ -32,23 +33,25 @@ const BasicInfo = ({ data, onUpdate }) => {
   };
 
   // Function to handle image file selection
-const handleImageChange = async (e) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    if (file.size > 5 * 1024 * 1024) { // 5MB limit
-      alert('Image size should be less than 5MB');
-      return;
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        alert('Image size should be less than 5MB');
+        return;
+      }
+      setIsUploading(true); // Show loader
+      try {
+        const uploadResponse = await uploadImage(file);
+        setImagePreview(uploadResponse.fileUrl);
+        data.image = uploadResponse.fileUrl
+      } catch (error) {
+        alert('Image upload failed');
+      } finally {
+        setIsUploading(false); // Hide loader
+      }
     }
-    try {
-      const uploadResponse = await uploadImage(file);
-      console.log(uploadResponse,"upload response")
-      setImagePreview(uploadResponse.fileUrl);
-      data.image = uploadResponse.fileUrl
-    } catch (error) {
-      alert('Image upload failed');
-    }
-  }
-};
+  };
 
   // const handleAudioChange = (e) => {
   //   const file = e.target.files?.[0];
@@ -158,45 +161,54 @@ const handleImageChange = async (e) => {
     Course Image
   </label>
   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg relative">
-    <div className="space-y-1 text-center">
-      {imagePreview ? (
-        <div className="relative w-full max-w-xs">
-          <div className="aspect-w-16 aspect-h-9">
-            <img
-              src={imagePreview}
-              alt="Course preview"
-              className="object-cover rounded-lg w-full h-full"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={handleRemoveImage}
-            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-          >
-            <X className="w-4 h-4" />
-          </button>
+  <div className="space-y-1 text-center">
+    {imagePreview ? (
+      <div className="relative w-full max-w-xs">
+        <div className="aspect-w-16 aspect-h-9">
+          <img
+            src={imagePreview}
+            alt="Course preview"
+            className="object-cover rounded-lg w-full h-full"
+          />
         </div>
-      ) : (
-        <>
-          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="flex text-sm text-gray-600">
-            <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-              <span>Upload a file</span>
-              <input
-                ref={imageInputRef}
-                type="file"
-                className="sr-only"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-            </label>
-            <p className="pl-1">or drag and drop</p>
+        <button
+          type="button"
+          onClick={handleRemoveImage}
+          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    ) : (
+      <>
+        {isUploading ? (
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
           </div>
-          <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+            <div className="flex text-sm text-gray-600">
+              <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                <span>Upload a file</span>
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  className="sr-only"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={isUploading} // Disable input during upload
+                />
+              </label>
+              <p className="pl-1">or drag and drop</p>
+            </div>
+            <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+          </>
+        )}
+      </>
+    )}
   </div>
+</div>
 </div>
 
 

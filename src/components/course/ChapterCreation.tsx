@@ -12,6 +12,8 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
   });
 
   const [editingChapterId, setEditingChapterId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [loading2, setLoading2] = useState(false);
 
   const imageInputRef = useRef(null);
   const audioInputRef = useRef(null);
@@ -118,6 +120,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         alert("Image size should be less than 5MB");
         return;
       }
+      setLoading(true); // Start loading
       try {
         const uploadResponse = await uploadImage(file);
         setNewChapter((prev) => ({
@@ -126,10 +129,12 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         }));
       } catch (error) {
         alert("Image upload failed");
+      } finally {
+        setLoading(false); // Stop loading
       }
     }
   };
-
+  
   const handleAudioChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -137,6 +142,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         alert("Audio file size should be less than 10MB");
         return;
       }
+      setLoading2(true); // Start loading
       try {
         const uploadResponse = await uploadImage(file);
         setNewChapter((prev) => ({
@@ -145,6 +151,8 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         }));
       } catch (error) {
         alert("Audio upload failed");
+      } finally {
+        setLoading2(false); // Stop loading
       }
     }
   };
@@ -194,43 +202,48 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
     Chapter Image
   </label>
   <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg relative">
-    <div className="space-y-1 text-center">
-      {newChapter.image ? (
-        <div className="relative">
-          <img
-            src={newChapter.image}
-            alt="Chapter preview"
-            className="mx-auto w-64 h-40 object-contain rounded-lg border"
-          />
-          <button
-            type="button"
-            onClick={handleRemoveImage}
-            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-          >
-            <X className="w-4 h-4" />
-          </button>
+  {loading && (
+     <div className="flex justify-center items-center">
+     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
+   </div>
+  )}
+  <div className="space-y-1 text-center">
+    {newChapter.image ? (
+      <div className="relative">
+        <img
+          src={newChapter.image}
+          alt="Chapter preview"
+          className="mx-auto w-64 h-40 object-contain rounded-lg border"
+        />
+        <button
+          type="button"
+          onClick={handleRemoveImage}
+          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    ) : (
+      <>
+        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+        <div className="flex text-sm text-gray-600">
+          <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+            <span>Upload image</span>
+            <input
+              ref={imageInputRef}
+              type="file"
+              className="sr-only"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+          </label>
+          <p className="pl-1">or drag and drop</p>
         </div>
-      ) : (
-        <>
-          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="flex text-sm text-gray-600">
-            <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-              <span>Upload image</span>
-              <input
-                ref={imageInputRef}
-                type="file"
-                className="sr-only"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-            </label>
-            <p className="pl-1">or drag and drop</p>
-          </div>
-          <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-        </>
-      )}
-    </div>
+        <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+      </>
+    )}
   </div>
+</div>
 </div>
 
 
@@ -239,47 +252,52 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
   <label className="block text-sm font-medium text-gray-700 mb-2">
     Chapter Audio
   </label>
-  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-    <div className="space-y-1 text-center">
-      {newChapter.audio ? (
-        <div className="flex flex-col items-center space-y-2">
-          <div className="flex items-center space-x-4">
-            <Music className="w-8 h-8 text-blue-500" />
-            <span className="text-sm text-gray-600">Audio Uploaded</span>
-            <button
-              type="button"
-              onClick={handleRemoveAudio}
-              className="p-1 text-red-500 hover:text-red-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          <audio controls className="w-full max-w-xs">
-            <source src={newChapter.audio} type="audio/mpeg" />
-            Your browser does not support the audio element.
-          </audio>
-        </div>
-      ) : (
-        <>
-          <Music className="mx-auto h-12 w-12 text-gray-400" />
-          <div className="flex text-sm text-gray-600">
-            <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-              <span>Upload audio</span>
-              <input
-                ref={audioInputRef}
-                type="file"
-                className="sr-only"
-                accept="audio/*"
-                onChange={handleAudioChange}
-              />
-            </label>
-            <p className="pl-1">or drag and drop</p>
-          </div>
-          <p className="text-xs text-gray-500">MP3, WAV up to 10MB</p>
-        </>
-      )}
-    </div>
+  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg relative">
+  {loading2 && (
+    <div className="flex justify-center items-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
   </div>
+  )}
+  <div className="space-y-1 text-center">
+    {newChapter.audio ? (
+      <div className="flex flex-col items-center space-y-2">
+        <div className="flex items-center space-x-4">
+          <Music className="w-8 h-8 text-blue-500" />
+          <span className="text-sm text-gray-600">Audio Uploaded</span>
+          <button
+            type="button"
+            onClick={handleRemoveAudio}
+            className="p-1 text-red-500 hover:text-red-600"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <audio controls className="w-full max-w-xs">
+          <source src={newChapter.audio} type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+      </div>
+    ) : (
+      <>
+        <Music className="mx-auto h-12 w-12 text-gray-400" />
+        <div className="flex text-sm text-gray-600">
+          <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+            <span>Upload audio</span>
+            <input
+              ref={audioInputRef}
+              type="file"
+              className="sr-only"
+              accept="audio/*"
+              onChange={handleAudioChange}
+            />
+          </label>
+          <p className="pl-1">or drag and drop</p>
+        </div>
+        <p className="text-xs text-gray-500">MP3, WAV up to 10MB</p>
+      </>
+    )}
+  </div>
+</div>
 </div>
 
           <input

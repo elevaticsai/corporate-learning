@@ -48,6 +48,8 @@ const TrainingDetails = () => {
   const [questionPanel, setQuestionPanel] = useState("overview");
 
   const [trainingDetails, setTrainingDetails] = useState<any>(null);
+  console.log(trainingDetails);
+
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
   const [nextItem, setNextItem] = useState<{
     itemType: string;
@@ -117,7 +119,7 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(`https://gaussconnect.com/api/module/${id}`, {
+      .get(`https://gaussconnect.com/api/module/${id}/employee`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -151,6 +153,8 @@ const TrainingDetails = () => {
         setActiveTab("content");
         setQuestionPanel("content");
         setSelectedAnswers([]);
+        if (!selectedChapter) return;
+        completeChapter(selectedChapter._id);
       })
       .catch((error) =>
         console.error("Error fetching chapter content:", error)
@@ -178,6 +182,45 @@ const TrainingDetails = () => {
       .catch((error) => {
         console.error("Error fetching question:", error);
       });
+  };
+
+  const completeChapter = (chapterId: string) => {
+    if (!token) {
+      window.location.href = "/login";
+      return;
+    }
+
+    axios
+      .post(
+        "https://gaussconnect.com/api/chapter-complete",
+        {
+          chapterId: chapterId,
+          moduleId: id, // Ensure module ID is sent
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Chapter marked as complete:", response.data);
+
+        // Update chapter state to mark it as completed
+        setTrainingDetails((prevDetails: any) => {
+          return {
+            ...prevDetails,
+            chapters: prevDetails.chapters.map((chapter: Chapter) =>
+              chapter._id === chapterId
+                ? { ...chapter, isCompleted: true }
+                : chapter
+            ),
+          };
+        });
+      })
+      .catch((error) =>
+        console.error("Error marking chapter as complete:", error)
+      );
   };
 
   const handleNextQuestion = () => {
@@ -370,7 +413,7 @@ const TrainingDetails = () => {
                               </span>
                             )}
                             {chapter.isCompleted === false && (
-                              <span className="px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium whitespace-nowrap">
+                              <span className="px-2.5 py-1 bg-green-100 text-red-800 rounded-full text-xs font-medium whitespace-nowrap">
                                 Pending
                               </span>
                             )}
@@ -583,7 +626,7 @@ const TrainingDetails = () => {
                     >
                       <button
                         onClick={closePopup}
-                        className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-lg"
+                        className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl"
                       >
                         ×
                       </button>

@@ -22,11 +22,15 @@ const LoginPage = () => {
             return;
           }
 
+          console.log("user is", user);
+
           // Store full user details in Redux
           dispatch(setAuthData({ token, user }));
 
           // Redirect based on user role
-          if (user.role === "EMPLOYEE") {
+          if (user.role === "EMPLOYEE" && user.isFirstLogin) {
+            navigate(`/reset-password`);
+          } else if (user.role === "EMPLOYEE" && !user.isFirstLogin) {
             navigate(`/employee`);
           } else if (user.role === "MANAGER") {
             navigate(`/hr`);

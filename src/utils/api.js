@@ -15,7 +15,6 @@ export const login = async () => {
       },
     }
   );
-  console.log(response.data.token, "admintoken");
   return response.data.token;
 };
 

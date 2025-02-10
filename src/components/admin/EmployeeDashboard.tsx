@@ -103,15 +103,15 @@ const EmployeeDashboard = () => {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Unauthorized access. Please login again.");
+          throw new Error("No module has been assigned to this user.");
         }
         return res.json();
       })
       .then((data: UserProgress) => {
         setUserProgress(data);
 
-        // 🔥 Filter modules where status is "published"
-        const formattedTrainings = data.moduleProgress
+        // Filter modules where status is "published"
+        const formattedTrainings = data.allowedModules
           .filter((module) => module._id && module.status === "published") // Only published modules
           .map((module) => ({
             id: module._id,

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Outlet, NavLink } from "react-router-dom";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +13,7 @@ import {
   Menu,
   X,
   ChevronDown,
+  User,
 } from "lucide-react";
 
 const menuItems = [
@@ -55,6 +57,20 @@ const menuItems = [
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const signout = useAuthStore((state) => state.signout);
+  const user = useAuthStore((state) => state.user);
+
+  const handleLogout = () => {
+    // Clear auth state from the store
+    signout();
+
+    // Close the user menu
+    setUserMenuOpen(false);
+
+    // Redirect to login page
+    navigate("/login");
+  };
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
@@ -116,13 +132,11 @@ const AdminLayout = () => {
               onClick={() => setUserMenuOpen(!userMenuOpen)}
               className="flex items-center space-x-3 focus:outline-none"
             >
-              <img
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                alt="User"
-                className="w-8 h-8 rounded-full"
-              />
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <User className="w-5 h-5 text-gray-600" />
+              </div>
               <span className="text-sm font-medium text-gray-700">
-                Admin User
+                {user?.username || "Guest User"}
               </span>
               <ChevronDown className="w-4 h-4 text-gray-500" />
             </button>
@@ -131,9 +145,7 @@ const AdminLayout = () => {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
                 <button
                   className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={() => {
-                    // Handle logout
-                  }}
+                  onClick={handleLogout}
                 >
                   <LogOut className="w-4 h-4 mr-3" />
                   Sign out

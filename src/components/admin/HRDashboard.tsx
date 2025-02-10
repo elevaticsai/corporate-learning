@@ -1,13 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   CheckCircle,
   Clock,
   Search,
   ChevronDown,
-  Download,
-  Plus,
-  Upload,
+  UserPlus,
 } from "lucide-react";
 import {
   BarChart,
@@ -23,6 +21,7 @@ import {
   Cell,
 } from "recharts";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 interface EmployeeType {
   name: string;
@@ -50,29 +49,6 @@ const trainingTypes = [
   "Soft Skills",
   "Compliance",
   "Leadership",
-];
-const availableCourses = [
-  {
-    id: 1,
-    title: "POSH Training",
-    category: "Compliance",
-    duration: "2 hours",
-    mandatory: true,
-  },
-  {
-    id: 2,
-    title: "Leadership Fundamentals",
-    category: "Management",
-    duration: "4 hours",
-    mandatory: false,
-  },
-  {
-    id: 3,
-    title: "Cybersecurity Basics",
-    category: "IT",
-    duration: "3 hours",
-    mandatory: true,
-  },
 ];
 
 const MetricCard = ({
@@ -110,13 +86,7 @@ const HRDashboard = () => {
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [trainingCount, setTrainingCount] = useState(0);
   const [completed, setCompleted] = useState(0);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [showAssignModal, setShowAssignModal] = useState(false);
   const [pending, setPending] = useState(0);
-  const [selectedCourses, setSelectedCourses] = useState<number[]>([]);
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const [pieData, setPieData] = useState<
     { name: string; value: number; color: string }[]
   >([]);
@@ -126,13 +96,12 @@ const HRDashboard = () => {
   console.log(employeeData);
 
   const token = useSelector((state: any) => state.auth.token); // Get token from Redux store
-  console.log("Token being used:", token);
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect.com/api/manager/employees/progress",
+          "http://localhost:4000/api/manager/employees/progress",
           {
             method: "GET",
             headers: {
@@ -158,7 +127,7 @@ const HRDashboard = () => {
     const fetchTrainingData = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect.com/api/manager/training-programs",
+          "http://localhost:4000/api/manager/training-programs",
           {
             method: "GET",
             headers: {
@@ -181,7 +150,7 @@ const HRDashboard = () => {
     const fetchModuleStatus = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect.com/api/manager/modules/total-status",
+          "http://localhost:4000/api/manager/modules/total-status",
           {
             method: "GET",
             headers: {
@@ -236,7 +205,7 @@ const HRDashboard = () => {
     const fetchEmployeeData = async () => {
       try {
         const response = await fetch(
-          "https://gaussconnect.com/api/manager/employees/details",
+          "http://localhost:4000/api/manager/employees/details",
           {
             method: "GET",
             headers: {
@@ -276,7 +245,7 @@ const HRDashboard = () => {
   const fetchTrainingEngagement = async () => {
     try {
       const response = await fetch(
-        "https://gaussconnect.com/api/manager/modules/categories/status",
+        "http://localhost:4000/api/manager/modules/categories/status",
         {
           method: "GET",
           headers: {
@@ -309,96 +278,80 @@ const HRDashboard = () => {
     useState("All Departments");
   const [selectedType, setSelectedType] = useState("All Types");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
+  // const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
 
-  const handleEmployeeSelect = (id: number) => {
-    setSelectedEmployees((prev) =>
-      prev.includes(id) ? prev.filter((empId) => empId !== id) : [...prev, id]
-    );
-  };
+  // const handleEmployeeSelect = (id: number) => {
+  //   setSelectedEmployees((prev) =>
+  //     prev.includes(id) ? prev.filter((empId) => empId !== id) : [...prev, id]
+  //   );
+  // };
 
-  const handleSendReminders = () => {
-    console.log("Sending reminders to:", selectedEmployees);
-    // Implement reminder functionality
-  };
+  // const handleSendReminders = () => {
+  //   console.log("Sending reminders to:", selectedEmployees);
+  //   // Implement reminder functionality
+  // };
 
-  const handleExportData = () => {
-    console.log("Exporting data...");
-    // Implement export functionality
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Process CSV file
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result;
-        // Parse CSV and process data
-        console.log("Processing CSV:", text);
-        setShowUploadModal(false);
-      };
-      reader.readAsText(file);
-    }
-  };
-
-  const handleAssignTraining = () => {
-    console.log("Assigning training:", {
-      employees: selectedEmployees,
-      courses: selectedCourses,
-    });
-    setShowAssignModal(false);
-    setSelectedEmployees([]);
-    setSelectedCourses([]);
-  };
-
-  const handleGenerateReport = () => {
-    // Generate CSV report
-    const csvContent =
-      "Employee,Course,Status,Due Date\n" +
-      employeeData
-        .map((emp) => `${emp.name},${emp.title},${emp.status},${emp.dueDate}`)
-        .join("\n");
-
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "training_report.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
+  // const handleExportData = () => {
+  //   console.log("Exporting data...");
+  //   // Implement export functionality
+  // };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pl-5">
       {/* Header with Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Training Management Dashboard
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-900">HR Dashboard</h1>
+        <Link
+          to="/hr/user-management"
+          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700"
+        >
+          <UserPlus size={20} /> Manage Users
+        </Link>
+      </div>
 
-        <div className="flex flex-wrap gap-4">
-          <button
-            onClick={() => setShowUploadModal(true)}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+      <div className="flex flex-wrap gap-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <input
+            type="text"
+            placeholder="Search employees..."
+            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Department Filter */}
+        <div className="relative">
+          <select
+            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={selectedDepartment}
+            onChange={(e) => setSelectedDepartment(e.target.value)}
           >
-            <Upload className="w-4 h-4 mr-2" />
-            Upload Employees
-          </button>
-          <button
-            onClick={() => setShowAssignModal(true)}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            {departments.map((dept) => (
+              <option key={dept} value={dept}>
+                {dept}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
+        </div>
+
+        {/* Training Type Filter */}
+        <div className="relative">
+          <select
+            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Assign Training
-          </button>
-          <button
-            onClick={handleGenerateReport}
-            className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
-          </button>
+            {trainingTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
         </div>
       </div>
 
@@ -586,157 +539,6 @@ const HRDashboard = () => {
           </table>
         </div>
       </div>
-      {/* Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Upload Employee Data
-            </h3>
-            <div className="space-y-4">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileUpload}
-                  accept=".csv"
-                  className="hidden"
-                />
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center justify-center"
-                >
-                  <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                  <span className="block text-sm text-gray-600">
-                    Click to upload CSV file
-                  </span>
-                </button>
-                <p className="text-xs text-gray-500 mt-2">
-                  Format: Employee ID, Name, Email, Department, Manager
-                </p>
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowUploadModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Upload
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Assign Training Modal */}
-      {showAssignModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Assign Training
-            </h3>
-            <div className="space-y-6">
-              {/* Employee Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Employees
-                </label>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {employeeData.map((employee) => (
-                    <label
-                      key={employee.id}
-                      className="flex items-center p-2 hover:bg-gray-50 rounded"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedEmployees.includes(employee.id)}
-                        onChange={() => {
-                          setSelectedEmployees((prev) =>
-                            prev.includes(employee.id)
-                              ? prev.filter((id) => id !== employee.id)
-                              : [...prev, employee.id]
-                          );
-                        }}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-900">
-                        {employee.name}
-                      </span>
-                      <span className="ml-2 text-sm text-gray-500">
-                        ({employee.department})
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Course Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Courses
-                </label>
-                <div className="space-y-2">
-                  {availableCourses.map((course) => (
-                    <label
-                      key={course.id}
-                      className="flex items-center p-2 hover:bg-gray-50 rounded"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCourses.includes(course.id)}
-                        onChange={() => {
-                          setSelectedCourses((prev) =>
-                            prev.includes(course.id)
-                              ? prev.filter((id) => id !== course.id)
-                              : [...prev, course.id]
-                          );
-                        }}
-                        className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-900">
-                        {course.title}
-                      </span>
-                      <span className="ml-2 text-xs text-gray-500">
-                        ({course.duration})
-                      </span>
-                      {course.mandatory && (
-                        <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 rounded-full text-xs">
-                          Mandatory
-                        </span>
-                      )}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => setShowAssignModal(false)}
-                  className="px-4 py-2 text-gray-600 hover:text-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAssignTraining}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                  disabled={
-                    selectedEmployees.length === 0 ||
-                    selectedCourses.length === 0
-                  }
-                >
-                  Assign Training
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -18,7 +18,7 @@ import {
   X
 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { login, loginIntsructor, getModuleById, updateModule, updateCourseStatus, uploadImage } from '../../utils/api.js';
+import {login, getModuleByIdAdmin, updateModulebyAdmin, updateCourseStatus, uploadImage } from '../../utils/api.js';
 
 const CourseReview = () => {
   const { id } = useParams();
@@ -27,15 +27,14 @@ const CourseReview = () => {
   const [showRejectionModal, setShowRejectionModal] = useState(false);
   const [rejectionComment, setRejectionComment] = useState('');
   const [selectedChapter, setSelectedChapter] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  // const [isPlaying, setIsPlaying] = useState(false);
+  // const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editingChapter, setEditingChapter] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [courseData, setCourseData] = useState(null);
   const [token, setToken] = useState(null);
-  const [adminToken, setAdminToken] = useState(null);
   const [isApproving, setIsApproving] = useState(null); // Holds the approving courseId
   const [isRejecting, setIsRejecting] = useState(null); // Holds the rejecting courseId
   const [isLoading, setIsLoading] = useState(false);
@@ -47,11 +46,9 @@ const CourseReview = () => {
   useEffect(() => {
     const fetchCourseData = async () => {
       try {
-        const instructorToken = await loginIntsructor();
-        const adminToken = await login();
-        setAdminToken(adminToken)
-        setToken(instructorToken);
-        const moduleData = await getModuleById(instructorToken, id);
+        const token = await login();
+        setToken(token)
+        const moduleData = await getModuleByIdAdmin(token, id);
         console.log(moduleData, "moduleData")
         setCourseData(moduleData);
       } catch (error) {
@@ -140,7 +137,7 @@ const CourseReview = () => {
   };
 
   const handleSaveChapterEdit = async () => {
-    let updatedData = []    
+    let updatedData = []
     if (token) {
       if (editingChapter) {
 
@@ -153,7 +150,7 @@ const CourseReview = () => {
       }
       // const updatedData = courseData;
       try {
-        await updateModule(token, id, updatedData);
+        await updateModulebyAdmin(token, id, updatedData);
         setCourseData(updatedData);
         setShowEditModal(false);
         setEditingChapter(null);
@@ -185,7 +182,7 @@ const CourseReview = () => {
     console.log(id, " courseId ");
     setIsApproving(id); // Start loading for this course
     try {
-      const response = await updateCourseStatus(adminToken, id, "published");
+      const response = await updateCourseStatus(token, id, "published");
       console.log("Course status updated to published:", response);
       // Update state to remove the approved course from pendingApprovals
       // setPendingApprovals((prevApprovals) =>
@@ -205,7 +202,7 @@ const CourseReview = () => {
     console.log('Course rejected:', id, 'Comment:', rejectionComment);
     setIsApproving(id); // Start loading for this course
     try {
-      const response = await updateCourseStatus(adminToken, id, "rejected");
+      const response = await updateCourseStatus(token, id, "rejected");
       console.log("Course status updated to published:", response);
       // Update state to remove the approved course from pendingApprovals
       // setPendingApprovals((prevApprovals) =>
@@ -238,6 +235,29 @@ const CourseReview = () => {
       setSelectedChapter(courseData?.chapters[currentIndex - 1]);
     }
   };
+
+  const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
+
+  const toggleMute = () => {
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
+
 
   const renderContent = () => {
     console.log(selectedChapter, "selectedchapter")
@@ -319,18 +339,21 @@ const CourseReview = () => {
                 className="w-full h-full object-cover"
               />
 
+              {/* Audio Element (Hidden) */}
+              <audio ref={audioRef} src={selectedChapter.content.audioUrl} />
+
               {/* Media Controls */}
               <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                 <div className="flex items-center justify-between text-white">
                   <div className="flex items-center space-x-4">
                     <button
-                      onClick={() => setIsPlaying(!isPlaying)}
+                      onClick={togglePlay}
                       className="p-2 hover:bg-white/20 rounded-full transition"
                     >
                       {isPlaying ? <Pause className="w-6 h-6" /> : <PlayCircle className="w-6 h-6" />}
                     </button>
                     <button
-                      onClick={() => setIsMuted(!isMuted)}
+                      onClick={toggleMute}
                       className="p-2 hover:bg-white/20 rounded-full transition"
                     >
                       {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}

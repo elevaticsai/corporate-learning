@@ -21,36 +21,49 @@ const menuItems = [
     title: "Dashboard",
     icon: LayoutDashboard,
     path: "/admin/dashboard",
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "HR Dashboard",
     icon: GraduationCap,
     path: "/hr",
+    roles: ["MANAGER"],
   },
   {
     title: "Instructor",
     icon: School,
     path: "/instructor",
+    roles: ["INSTRUCTOR"],
+  },
+  {
+    title: "Employee",
+    icon: School,
+    path: "/employee",
+    roles: ["EMPLOYEE"],
   },
   {
     title: "Clients",
     icon: Users,
     path: "/clients",
+    roles: ["SUPER_ADMIN", "MANAGER"],
   },
   {
     title: "Courses",
     icon: BookOpen,
     path: "/courses/create",
+    roles: ["SUPER_ADMIN", "INSTRUCTOR"],
   },
   {
     title: "Schedule",
     icon: Calendar,
     path: "/schedule",
+    roles: ["SUPER_ADMIN", "HR", "INSTRUCTOR"],
   },
   {
     title: "Settings",
     icon: Settings,
     path: "/admin/settings",
+    roles: ["SUPER_ADMIN"],
   },
 ];
 

@@ -110,9 +110,8 @@ const EmployeeDashboard = () => {
       .then((data: UserProgress) => {
         setUserProgress(data);
 
-        // Filter modules where status is "published"
         const formattedTrainings = data.allowedModules
-          .filter((module) => module._id && module.status === "published") // Only published modules
+          .filter((module) => module._id && module.status === "published")
           .map((module) => ({
             id: module._id,
             title: module.title,

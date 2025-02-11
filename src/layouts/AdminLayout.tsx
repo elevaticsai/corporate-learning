@@ -22,7 +22,7 @@ const menuItems = [
     title: "Dashboard",
     icon: LayoutDashboard,
     path: "/admin/dashboard",
-    roles: ["SUPER_ADMIN", "MANAGER"],
+    roles: ["SUPER_ADMIN"],
   },
   {
     title: "HR Dashboard",
@@ -46,7 +46,7 @@ const menuItems = [
     title: "Clients",
     icon: Users,
     path: "/clients",
-    roles: ["SUPER_ADMIN", "MANAGER"],
+    roles: ["SUPER_ADMIN"],
   },
   {
     title: "Courses",
@@ -58,7 +58,7 @@ const menuItems = [
     title: "Schedule",
     icon: Calendar,
     path: "/schedule",
-    roles: ["SUPER_ADMIN", "HR", "INSTRUCTOR"],
+    roles: ["SUPER_ADMIN", "HR"],
   },
   {
     title: "Settings",

@@ -119,7 +119,7 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(`https://gaussconnect.com/api/module/${id}/employee`, {
+      .get(`http://localhost:4000/api/module/${id}/employee`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -138,14 +138,11 @@ const TrainingDetails = () => {
     }
 
     axios
-      .get(
-        `https://gaussconnect.com/api/section?id=${chapterId}&type=chapter`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      .get(`http://localhost:4000/api/section?id=${chapterId}&type=chapter`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         const fetchedChapter: Chapter = response.data.currentItem;
         setSelectedChapter(fetchedChapter);
@@ -153,8 +150,7 @@ const TrainingDetails = () => {
         setActiveTab("content");
         setQuestionPanel("content");
         setSelectedAnswers([]);
-        if (!selectedChapter) return;
-        completeChapter(selectedChapter._id);
+        completeChapter(fetchedChapter._id);
       })
       .catch((error) =>
         console.error("Error fetching chapter content:", error)
@@ -163,14 +159,11 @@ const TrainingDetails = () => {
 
   const fetchQuestion = (questionId: string) => {
     axios
-      .get(
-        `https://gaussconnect.com/api/section?id=${questionId}&type=question`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      )
+      .get(`http://localhost:4000/api/section?id=${questionId}&type=question`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         // Assuming the API response contains the question data you need
         setQuestion(response.data.currentItem);
@@ -192,7 +185,7 @@ const TrainingDetails = () => {
 
     axios
       .post(
-        "https://gaussconnect.com/api/chapter-complete",
+        "http://localhost:4000/api/chapter-complete",
         {
           chapterId: chapterId,
           moduleId: id, // Ensure module ID is sent
@@ -224,14 +217,14 @@ const TrainingDetails = () => {
   };
 
   const handleNextQuestion = () => {
-    setSelectedAnswers([]); // ✅ Clear before moving to the next question
+    setSelectedAnswers([]); // Clear before moving to the next question
 
     if (nextQuestionId) {
       fetchQuestion(nextQuestionId);
     }
   };
   const handlePrevQuestion = () => {
-    setSelectedAnswers([]); // ✅ Clear before moving to the next question
+    setSelectedAnswers([]); // Clear before moving to the next question
 
     if (!prevQuestionId) {
       console.log(
@@ -266,7 +259,7 @@ const TrainingDetails = () => {
     // Post the selected answer to check if it's correct
     axios
       .post(
-        "https://gaussconnect.com/api/question-complete",
+        "http://localhost:4000/api/question-complete",
         {
           questionId: question._id,
           moduleId: id,
@@ -293,9 +286,9 @@ const TrainingDetails = () => {
       .catch((error) => console.error("Error submitting answer:", error));
   };
 
-  const handleAnswerSelect = (answer: string) => {
-    setUserAnswer(answer);
-  };
+  // const handleAnswerSelect = (answer: string) => {
+  //   setUserAnswer(answer);
+  // };
 
   const handleOptionChange = (option: string) => {
     setSelectedAnswers((prev: string[]) =>
@@ -590,7 +583,6 @@ const TrainingDetails = () => {
                 </ul>
 
                 {/* Action Buttons */}
-                {/* Action Buttons */}
                 <div className="mt-6 flex justify-between">
                   <button
                     onClick={handlePrevQuestion}
@@ -613,7 +605,6 @@ const TrainingDetails = () => {
                   </button>
                 </div>
 
-                {/* Popup for Correct/Incorrect Answer */}
                 {/* Popup for Correct/Incorrect Answer */}
                 {isPopupVisible && (
                   <div

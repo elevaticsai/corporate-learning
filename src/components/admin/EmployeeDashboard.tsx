@@ -103,7 +103,7 @@ const EmployeeDashboard = () => {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Unauthorized access. Please login again.");
+          throw new Error("No module has been assigned to this user.");
         }
         return res.json();
       })

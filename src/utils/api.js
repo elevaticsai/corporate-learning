@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_BASE_URL = "https://gaussconnect.com/api";
+const API_BASE_URL = "http://localhost:4000/api";
 
 // Function to get the token for authentication
 export const login = async () => {
@@ -194,7 +194,7 @@ export const getModuleByIdAdmin = async (token, moduleId) => {
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log(response)
+  console.log(response);
   return response.data;
 };
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useSelector } from "react-redux";
 import {
   LayoutDashboard,
   Users,
@@ -72,7 +73,7 @@ const AdminLayout = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
-  const user = useAuthStore((state) => state.user);
+  // const user = useAuthStore((state) => state.user);
 
   const handleLogout = () => {
     // Clear auth state from the store
@@ -84,7 +85,7 @@ const AdminLayout = () => {
     // Redirect to login page
     navigate("/login");
   };
-
+  const user = useSelector((state: any) => state.auth.user); // Get user data
   const userRole = user?.role || "GUEST";
 
   return (
@@ -109,7 +110,7 @@ const AdminLayout = () => {
         {/* Navigation */}
         <nav className="p-4 space-y-1">
           {menuItems
-            .filter((item) => item.roles.includes(userRole)) // Role-based filtering
+            .filter((item) => item.roles.includes(userRole)) // 🔥 Role-based filtering
             .map((item) => {
               const Icon = item.icon;
               return (

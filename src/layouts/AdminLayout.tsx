@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useSelector } from "react-redux";
+import { Outlet, NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -84,6 +86,8 @@ const AdminLayout = () => {
     // Redirect to login page
     navigate("/login");
   };
+  const user = useSelector((state: any) => state.auth.user); // Get user data
+  const userRole = user?.role || "GUEST";
 
   return (
     <div className="flex bg-gray-50 min-h-screen">
@@ -106,25 +110,25 @@ const AdminLayout = () => {
 
         {/* Navigation */}
         <nav className="p-4 space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-700 hover:bg-gray-100"
-                  }`
-                }
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                {item.title}
-              </NavLink>
-            );
-          })}
+          {menuItems
+            .filter((item) => item.roles.includes(userRole)) // 🔥 Role-based filtering
+            .map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
+                      isActive ? "bg-blue-50 text-blue-700" : "text-gray-700"
+                    }`
+                  }
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.title}
+                </NavLink>
+              );
+            })}
         </nav>
       </div>
 

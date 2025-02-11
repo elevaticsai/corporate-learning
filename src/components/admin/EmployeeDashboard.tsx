@@ -108,6 +108,8 @@ const EmployeeDashboard = () => {
         return res.json();
       })
       .then((data: UserProgress) => {
+        console.log("this is user progress", data);
+
         setUserProgress(data);
 
         const formattedTrainings = data.allowedModules

@@ -69,7 +69,6 @@ export const loginIntsructor = async () => {
       },
     }
   );
-  console.log(response.data.token, "instructor token"); // Check token in console for debugging
   return response.data.token;
 };
 
@@ -169,6 +168,34 @@ export const updateModule = async (token, moduleId, moduleData) => {
     console.error("Error updating module:", error.response?.data || error);
     throw error;
   }
+};
+
+// Function to update an existing course/module
+export const updateModulebyAdmin = async (token, moduleId, moduleData) => {
+  try {
+    const response = await axios.put(
+      `${API_BASE_URL}/admin/module/${moduleId}`,
+      moduleData,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error updating module:", error.response?.data || error);
+    throw error;
+  }
+};
+
+// Function to get module by ID (for editing course)
+export const getModuleByIdAdmin = async (token, moduleId) => {
+  const response = await axios.get(`${API_BASE_URL}/admin/module/${moduleId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  console.log(response)
+  return response.data;
 };
 
 // Function to get all courses

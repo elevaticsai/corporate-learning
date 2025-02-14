@@ -62,10 +62,10 @@ const MetricCard = ({
   value: string;
   trend?: string;
 }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+  <div className="bg-white dark:bg-dark-800 dark:border-dark-700 p-6 rounded-xl shadow-sm border border-gray-100">
     <div className="flex items-center justify-between">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="w-6 h-6 text-blue-500" />
+      <div className="p-2 dark:bg-blue-900/30 bg-blue-50 rounded-lg">
+        <Icon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
       </div>
       {trend && (
         <span
@@ -77,8 +77,12 @@ const MetricCard = ({
         </span>
       )}
     </div>
-    <h3 className="mt-4 text-gray-600 text-sm font-medium">{title}</h3>
-    <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
+    <h3 className="mt-4 text-gray-600 text-sm dark:text-gray-400 font-medium">
+      {title}
+    </h3>
+    <p className="mt-2 text-2xl dark:text-white font-semibold text-gray-900">
+      {value}
+    </p>
   </div>
 );
 
@@ -92,10 +96,9 @@ const HRDashboard = () => {
   >([]);
   const [trainingEngagementData, setTrainingEngagementData] = useState([]);
 
-  const [employeeData, setEmployeeData] = useState<any[]>([]); // Update the state to hold employee data
-  console.log(employeeData);
+  const [employeeData, setEmployeeData] = useState<any[]>([]);
 
-  const token = useSelector((state: any) => state.auth.token); // Get token from Redux store
+  const token = useSelector((state: any) => state.auth.token);
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
@@ -278,29 +281,14 @@ const HRDashboard = () => {
     useState("All Departments");
   const [selectedType, setSelectedType] = useState("All Types");
   const [searchTerm, setSearchTerm] = useState("");
-  // const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
-
-  // const handleEmployeeSelect = (id: number) => {
-  //   setSelectedEmployees((prev) =>
-  //     prev.includes(id) ? prev.filter((empId) => empId !== id) : [...prev, id]
-  //   );
-  // };
-
-  // const handleSendReminders = () => {
-  //   console.log("Sending reminders to:", selectedEmployees);
-  //   // Implement reminder functionality
-  // };
-
-  // const handleExportData = () => {
-  //   console.log("Exporting data...");
-  //   // Implement export functionality
-  // };
 
   return (
     <div className="space-y-6 pl-5">
       {/* Header with Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">HR Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+          HR Dashboard
+        </h1>
         <Link
           to="/hr/user-management"
           className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700"
@@ -316,7 +304,7 @@ const HRDashboard = () => {
           <input
             type="text"
             placeholder="Search employees..."
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:border-dark-700 dark:bg-dark-900"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -325,7 +313,7 @@ const HRDashboard = () => {
         {/* Department Filter */}
         <div className="relative">
           <select
-            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 dark:border-dark-700 focus:border-transparent  dark:bg-dark-900"
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
           >
@@ -341,7 +329,7 @@ const HRDashboard = () => {
         {/* Training Type Filter */}
         <div className="relative">
           <select
-            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 dark:border-dark-700  dark:bg-dark-900 focus:border-transparent"
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
           >
@@ -393,8 +381,8 @@ const HRDashboard = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Training Engagement Chart */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+        <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
             Training Engagement
           </h3>
           <div className="h-80">
@@ -404,17 +392,38 @@ const HRDashboard = () => {
                 barGap={2} // Adjusting the gap between bars
                 barCategoryGap={0} // Adjusting the spacing between groups of bars
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  fontSize={12}
+                  dy={10}
+                  stroke="#94a3b8"
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  stroke="#94a3b8"
+                  fontSize={12}
+                  dx={-10}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgb(30 41 59)",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    padding: "12px",
+                  }}
+                  labelStyle={{ color: "#fff", marginBottom: "4px" }}
+                  itemStyle={{ color: "#fff", padding: "2px 0" }}
+                />
                 <Bar
                   dataKey="completed"
                   stackId="a"
                   fill="#10B981"
                   stroke="none"
-                  barSize={50} // Adjust the width of the bars
+                  barSize={40} // Adjust the width of the bars
+                  radius={[4, 4, 0, 0]}
                 />
                 <Bar
                   dataKey="pending"
@@ -422,6 +431,7 @@ const HRDashboard = () => {
                   fill="#F59E0B"
                   stroke="none"
                   barSize={20} // Adjust the width of the bars
+                  radius={[4, 4, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -429,8 +439,8 @@ const HRDashboard = () => {
         </div>
 
         {/* Training Status Distribution */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
+        <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
+          <h3 className="text-lg font-medium dark:text-white text-gray-900 mb-4">
             Training Status Distribution
           </h3>
           <div className="h-80">
@@ -449,7 +459,16 @@ const HRDashboard = () => {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgb(30 41 59)",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    padding: "12px",
+                  }}
+                  labelStyle={{ color: "#fff", marginBottom: "4px" }}
+                  itemStyle={{ color: "#fff", padding: "2px 0" }}
+                />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
@@ -458,9 +477,9 @@ const HRDashboard = () => {
       </div>
 
       {/* Employee Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">
+      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 overflow-hidden dark:border-dark-700">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center dark:border-dark-700">
+          <h3 className="text-lg font-medium dark:text-white text-gray-900">
             Employee Training Status
           </h3>
           {/* <div className="flex gap-4">
@@ -483,28 +502,31 @@ const HRDashboard = () => {
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-50 dark:bg-dark-700/50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Employee Name
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Email
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Module
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Category
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Status
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-dark-700">
               {employeeData.map((employee, idx) => (
-                <tr key={idx}>
+                <tr
+                  key={idx}
+                  className="hover:bg-gray-50 dark:hover:bg-dark-700/50 transition"
+                >
                   {/* <td className="px-6 py-4">
                     <input
                       type="checkbox"
@@ -512,16 +534,16 @@ const HRDashboard = () => {
                       onChange={() => handleEmployeeSelect(employee.id)} // Add checkbox functionality
                     />
                   </td> */}
-                  <td className="px-6 py-4 text-sm text-gray-900">
+                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                     {employee.name}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
                     {employee.email}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
                     {employee.title}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
                     {employee.category}
                   </td>
                   <td

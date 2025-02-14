@@ -15,7 +15,11 @@ import {
   X,
   ChevronDown,
   User,
+  Moon,
+  Sun,
 } from "lucide-react";
+
+import { useTheme } from "../contexts/ThemeContext";
 
 const menuItems = [
   {
@@ -73,7 +77,8 @@ const AdminLayout = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
-  // const user = useAuthStore((state) => state.user);
+  // const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     // Clear auth state from the store
@@ -92,25 +97,27 @@ const AdminLayout = () => {
     <div className="flex bg-gray-50 min-h-screen">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform dark:bg-dark-800 dark:border-dark-700 transition-transform duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static flex-shrink-0`}
+        } lg:translate-x-0 lg:static flex-shrink-0 flex flex-col`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
-          <span className="text-xl font-semibold text-gray-800">L&D Admin</span>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-dark-700">
+          <span className="text-xl font-semibold text-gray-800 dark:text-white">
+            Elevatics360
+          </span>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-500 hover:text-gray-700"
+            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-1">
+        <nav className="flex-1 p-4 space-y-1">
           {menuItems
-            .filter((item) => item.roles.includes(userRole)) // 🔥 Role-based filtering
+            .filter((item) => item.roles.includes(userRole)) // Role-based filtering
             .map((item) => {
               const Icon = item.icon;
               return (
@@ -119,7 +126,9 @@ const AdminLayout = () => {
                   to={item.path}
                   className={({ isActive }) =>
                     `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                      isActive ? "bg-blue-50 text-blue-700" : "text-gray-700"
+                      isActive
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700"
                     }`
                   }
                 >
@@ -129,50 +138,53 @@ const AdminLayout = () => {
               );
             })}
         </nav>
+
+        {/* Bottom Section with Theme Toggle and User Menu */}
+        <div className="border-t border-gray-200 dark:border-dark-700 p-4">
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-gray-600" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {user?.username || "Guest User"}
+              </p>
+            </div>
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg"
+            >
+              {theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg"
+          >
+            <LogOut className="w-4 h-4 mr-3" />
+            Sign out
+          </button>
+        </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8">
+        {/* <header className="h-16 bg-white border-b dark:bg-dark-800 dark:border-dark-700 border-gray-200 flex items-center px-4 lg:px-8">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-gray-500 hover:text-gray-700"
+            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             <Menu className="w-6 h-6" />
           </button>
-
-          {/* User Menu */}
-          <div className="relative ml-auto">
-            <button
-              onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="flex items-center space-x-3 focus:outline-none"
-            >
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                <User className="w-5 h-5 text-gray-600" />
-              </div>
-              <span className="text-sm font-medium text-gray-700">
-                {user?.username || "Guest User"}
-              </span>
-              <ChevronDown className="w-4 h-4 text-gray-500" />
-            </button>
-
-            {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1">
-                <button
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="w-4 h-4 mr-3" />
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        </header>
+        </header> */}
 
         {/* Page Content */}
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 dark:bg-dark-900">
           <Outlet />
         </main>
       </div>

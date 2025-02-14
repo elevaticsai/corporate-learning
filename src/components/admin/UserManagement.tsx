@@ -309,10 +309,12 @@ const UserManagement = () => {
         theme="light"
       />
 
-      <h1 className="text-2xl font-semibold text-gray-900">User Management</h1>
+      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+        User Management
+      </h1>
 
       {/* Add Employee Form */}
-      <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm mb-6 dark:bg-dark-800 dark:border-dark-700">
         <h2 className="text-xl font-semibold mb-4">Add New Employee</h2>
         <form onSubmit={handleAddEmployee} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -323,7 +325,7 @@ const UserManagement = () => {
               onChange={(e) =>
                 setNewEmployee({ ...newEmployee, username: e.target.value })
               }
-              className="border rounded-md p-2"
+              className="border rounded-md p-2 dark:border-dark-700 dark:bg-dark-700"
               required
             />
             <input
@@ -333,7 +335,7 @@ const UserManagement = () => {
               onChange={(e) =>
                 setNewEmployee({ ...newEmployee, email: e.target.value })
               }
-              className="border rounded-md p-2"
+              className="border rounded-md p-2 dark:border-dark-700 dark:bg-dark-700"
               required
             />
           </div>
@@ -348,7 +350,7 @@ const UserManagement = () => {
       </div>
 
       {/* CSV Upload */}
-      <div className="bg-white p-6 rounded-lg shadow-sm mb-6">
+      <div className="bg-white p-6 rounded-lg shadow-sm mb-6 dark:bg-dark-800 dark:border-dark-700">
         <h2 className="text-xl font-semibold mb-4">Bulk Upload</h2>
         <div className="flex items-center gap-4">
           <input
@@ -356,7 +358,7 @@ const UserManagement = () => {
             accept=".csv"
             onChange={handleFileUpload}
             ref={fileInputRef}
-            className="border rounded-md p-2"
+            className="border rounded-md p-2 dark:border-dark-700 dark:bg-dark-700"
           />
           <button
             onClick={handleBulkUpload}
@@ -394,7 +396,7 @@ const UserManagement = () => {
       />
 
       {/* Employees Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden dark:bg-dark-800">
         {error && (
           <div className="p-4 text-red-600 bg-red-50 border-b border-red-100">
             {error}
@@ -404,8 +406,8 @@ const UserManagement = () => {
           <div className="p-4 text-center text-gray-600">Loading...</div>
         ) : (
           <>
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
+            <table className="min-w-full dark:bg-dark-800">
+              <thead className="bg-gray-50 dark:bg-dark-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Employee Name
@@ -421,7 +423,7 @@ const UserManagement = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y dark:bg-dark-800 divide-gray-200">
                 {Array.isArray(employees) && employees.length > 0 ? (
                   employees
                     .slice(

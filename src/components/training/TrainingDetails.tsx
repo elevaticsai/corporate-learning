@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
+
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useParams, Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import Confetti from "react-confetti";
+
 import {
   ChevronLeft,
   ChevronRight as ChevronNextIcon,
@@ -26,6 +30,7 @@ interface ChapterContent {
 interface Question {
   _id: string;
   question: string;
+  type: "SCQ" | "MCQ";
   options: string[];
   answer: string[];
 }
@@ -37,6 +42,10 @@ interface Chapter {
   isCompleted: true | false;
   duration: string;
 }
+
+// Import JSON animations
+import successAnimation from "/src/assets/success.json";
+import failAnimation from "/src/assets/fail.json";
 
 const TrainingDetails = () => {
   const navigate = useNavigate();
@@ -68,6 +77,9 @@ const TrainingDetails = () => {
 
   const [userAnswer, setUserAnswer] = useState<string | null>(null); // Track the selected answer
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(true);
+  const [confettiKey, setConfettiKey] = useState(0); // Unique key for Confetti
+
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const isLastQuestion = nextQuestionId === null;
 
@@ -247,15 +259,25 @@ const TrainingDetails = () => {
   const handleAnswerSubmit = () => {
     if (!selectedAnswers.length || !question) return;
 
-    // Check if all selected answers match the correct answers
-    const isCorrect =
-      selectedAnswers.length === question.answer.length &&
-      selectedAnswers.every((ans) => question.answer.includes(ans));
+    setShowConfetti(false);
+    setTimeout(() => {
+      // Check if the answer is correct
+      const isCorrect =
+        selectedAnswers.length === question.answer.length &&
+        selectedAnswers.every((ans) => question.answer.includes(ans));
 
-    // Set the states to show the result popup
-    setIsAnswerCorrect(isCorrect);
-    setIsPopupVisible(true);
+      setIsAnswerCorrect(isCorrect);
+      setIsPopupVisible(true);
 
+      if (isCorrect) {
+        // Update key to force re-render of Confetti
+        setConfettiKey((prevKey) => prevKey + 1);
+        setShowConfetti(true);
+
+        // Stop confetti after 3 seconds
+        setTimeout(() => setShowConfetti(false), 3000);
+      }
+    }, 100); // Small delay to reset confetti
     // Post the selected answer to check if it's correct
     axios
       .post(
@@ -291,11 +313,17 @@ const TrainingDetails = () => {
   // };
 
   const handleOptionChange = (option: string) => {
-    setSelectedAnswers((prev: string[]) =>
-      prev.includes(option)
-        ? prev.filter((ans) => ans !== option)
-        : [...prev, option]
-    );
+    if (question?.type === "SCQ") {
+      // Single-choice: Only one option can be selected
+      setSelectedAnswers([option]);
+    } else {
+      // Multi-choice: Allow multiple selections
+      setSelectedAnswers((prev) =>
+        prev.includes(option)
+          ? prev.filter((ans) => ans !== option)
+          : [...prev, option]
+      );
+    }
   };
 
   const getNextChapter = () => {
@@ -318,15 +346,28 @@ const TrainingDetails = () => {
       : null;
   };
 
+  useEffect(() => {
+    if (isAnswerCorrect) {
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000); // Show confetti for 3 seconds
+    }
+  }, [isAnswerCorrect]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 dark:bg-dark-900">
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-        <Link to="/employee" className="hover:text-gray-700 dark:hover:text-white">
+        <Link
+          to="/employee"
+          className="hover:text-gray-700 dark:hover:text-white"
+        >
           Home
         </Link>
         <ChevronNextIcon className="w-4 h-4" />
-        <Link to="/employee" className="hover:text-gray-700 dark:hover:text-white">
+        <Link
+          to="/employee"
+          className="hover:text-gray-700 dark:hover:text-white"
+        >
           Dashboard
         </Link>
         <ChevronNextIcon className="w-4 h-4" />
@@ -388,7 +429,9 @@ const TrainingDetails = () => {
                               </h3>
                               <p
                                 className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2"
-                                dangerouslySetInnerHTML={{ __html: chapter.description }}
+                                dangerouslySetInnerHTML={{
+                                  __html: chapter.description,
+                                }}
                               />
                             </div>
                           </div>
@@ -422,23 +465,27 @@ const TrainingDetails = () => {
             <>
               <div className="flex h-[calc(100vh-12rem)]">
                 {selectedChapter ? (
-                  <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-xl shadow-sm">
+                  <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-l-xl shadow-sm">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
                       {selectedChapter.title}
                     </h2>
                     <div
                       className="prose prose-blue max-w-none dark:prose-dark"
-                      dangerouslySetInnerHTML={{ __html: selectedChapter.description }}
+                      dangerouslySetInnerHTML={{
+                        __html: selectedChapter.description,
+                      }}
                     ></div>
                   </div>
                 ) : (
                   <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-xl shadow-sm">
-                    <p className="text-gray-500 dark:text-gray-300">Loading chapter content...</p>
+                    <p className="text-gray-500 dark:text-gray-300">
+                      Loading chapter content...
+                    </p>
                   </div>
                 )}
 
                 <div className="w-1/2 flex flex-col">
-                  <div className="relative flex-1 bg-gray-900">
+                  <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center">
                     <img
                       src={selectedChapter?.content?.imgUrl}
                       alt={selectedChapter?.title || "Media"}
@@ -460,18 +507,12 @@ const TrainingDetails = () => {
                                 <PlayCircle className="w-6 h-6 text-white" />
                               )}
                             </button>
-                               {/* <button onClick={toggleMute}>
-                              {isMuted ? (
-                                <VolumeX className="w-6 h-6 text-white" />
-                              ) : (
-                                <Volume2 className="w-6 h-6 text-white" />
-                              )}
-                            </button> */}
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
+
                   <div className="p-4 bg-gray-50 dark:bg-dark-700 border-t border-gray-100 dark:border-dark-700">
                     <div className="flex justify-between items-center">
                       <button
@@ -506,12 +547,16 @@ const TrainingDetails = () => {
                           <ChevronNextIcon className="w-5 h-5" />
                         </button>
                       ) : (
-                        <button
-                          onClick={() => fetchQuestion(nextItem?.data || "")}
-                          className="flex items-center space-x-2 text-gray-500 dark:text-gray-300"
-                        >
-                          Start Questions
-                        </button>
+                        <>
+                          <motion.button
+                            onClick={() => fetchQuestion(nextItem?.data || "")}
+                            whileHover={{ rotate: [0, 11, -11, 0] }}
+                            whileTap={{ scale: 0.9 }}
+                            className="relative flex items-center space-x-2 px-6 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg"
+                          >
+                            <span>Start Quiz</span>
+                          </motion.button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -521,13 +566,21 @@ const TrainingDetails = () => {
           ) : (
             <>
               <div className="p-8 space-y-6">
+                <h4 className="text-gray-600 dark:text-gray-300 text-sm font-semibold">
+                  {question?.type === "SCQ"
+                    ? "Single Choice Question (Select One)"
+                    : "Multiple Choice Question (Select Multiple)"}
+                </h4>
+
                 {question ? (
                   <h3
                     className="text-lg font-medium text-gray-900 dark:text-white mb-4"
                     dangerouslySetInnerHTML={{ __html: question?.question }}
                   ></h3>
                 ) : (
-                  <h3 className="text-gray-500 dark:text-gray-300">Loading question...</h3>
+                  <h3 className="text-gray-500 dark:text-gray-300">
+                    Loading question...
+                  </h3>
                 )}
                 <ul className="space-y-3">
                   {question?.options.map((option, index) => (
@@ -540,7 +593,7 @@ const TrainingDetails = () => {
                         }`}
                       >
                         <input
-                          type="checkbox"
+                          type={question?.type === "SCQ" ? "radio" : "checkbox"}
                           name="answer"
                           value={option}
                           checked={selectedAnswers.includes(option)}
@@ -556,13 +609,14 @@ const TrainingDetails = () => {
                         >
                           {selectedAnswers.includes(option) && "✓"}
                         </span>
-                        <span className="text-gray-700 dark:text-white text-lg font-medium">
+                        <span className="text-gray-700  dark:text-gray-500 text-lg font-medium">
                           {option}
                         </span>
                       </label>
                     </li>
                   ))}
                 </ul>
+
                 <div className="mt-6 flex justify-between">
                   <button
                     onClick={handlePrevQuestion}
@@ -588,9 +642,18 @@ const TrainingDetails = () => {
                     onClick={closePopup}
                     className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-300"
                   >
+                    {isAnswerCorrect && showConfetti && (
+                      <Confetti
+                        width={window.innerWidth}
+                        height={window.innerHeight}
+                      />
+                    )}
+
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-lg text-center max-w-md w-full relative animate-fadeIn"
+                      className={`bg-white dark:bg-dark-800 p-6 rounded-xl shadow-lg text-center max-w-md w-full relative animate-fadeIn h-30 ${
+                        isAnswerCorrect ? "animate-shake" : "animate-shake"
+                      }`}
                     >
                       <button
                         onClick={closePopup}
@@ -598,11 +661,11 @@ const TrainingDetails = () => {
                       >
                         ×
                       </button>
+
                       {isAnswerCorrect ? (
                         <div>
-                          <CheckCircle className="text-green-500 text-5xl mx-auto animate-pulse" />
-                          <h2 className="text-green-600 font-semibold text-xl mt-4">
-                            Correct Answer!
+                          <h2 className="text-green-600 font-semibold text-xl ">
+                            Correct Answer! 🎉
                           </h2>
                           {isLastQuestion ? (
                             <button

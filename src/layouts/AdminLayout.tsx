@@ -41,7 +41,7 @@ const menuItems = [
     roles: ["INSTRUCTOR"],
   },
   {
-    title: "Employee",
+    title: "Home",
     icon: School,
     path: "/employee",
     roles: ["EMPLOYEE"],
@@ -168,7 +168,7 @@ const AdminLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-          {/* Header */}
+        {/* Header */}
         {/* <header className="h-16 bg-white border-b dark:bg-dark-800 dark:border-dark-700 border-gray-200 flex items-center px-4 lg:px-8">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -177,7 +177,7 @@ const AdminLayout = () => {
             <Menu className="w-6 h-6" />
           </button>
         </header> */}
-        
+
         {/* Page Content */}
         <main className="p-4 lg:p-8 dark:bg-dark-900">
           <Outlet />

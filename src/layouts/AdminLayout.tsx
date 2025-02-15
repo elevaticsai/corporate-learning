@@ -77,27 +77,22 @@ const AdminLayout = () => {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
-  // const location = useLocation();
   const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
-    // Clear auth state from the store
     signout();
-
-    // Close the user menu
     setUserMenuOpen(false);
-
-    // Redirect to login page
     navigate("/login");
   };
-  const user = useSelector((state: any) => state.auth.user); // Get user data
+  const user = useSelector((state: any) => state.auth.user);
   const userRole = user?.role || "GUEST";
 
   return (
-    <div className="flex bg-gray-50 min-h-screen">
+    // Updated outer container with dark mode background variant
+    <div className="flex bg-gray-50 dark:bg-dark-900 min-h-screen">
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform dark:bg-dark-800 dark:border-dark-700 transition-transform duration-200 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 transform transition-transform duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static flex-shrink-0 flex flex-col`}
       >
@@ -117,7 +112,7 @@ const AdminLayout = () => {
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
           {menuItems
-            .filter((item) => item.roles.includes(userRole)) // Role-based filtering
+            .filter((item) => item.roles.includes(userRole))
             .map((item) => {
               const Icon = item.icon;
               return (
@@ -173,7 +168,7 @@ const AdminLayout = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
+          {/* Header */}
         {/* <header className="h-16 bg-white border-b dark:bg-dark-800 dark:border-dark-700 border-gray-200 flex items-center px-4 lg:px-8">
           <button
             onClick={() => setSidebarOpen(true)}
@@ -182,7 +177,7 @@ const AdminLayout = () => {
             <Menu className="w-6 h-6" />
           </button>
         </header> */}
-
+        
         {/* Page Content */}
         <main className="p-4 lg:p-8 dark:bg-dark-900">
           <Outlet />

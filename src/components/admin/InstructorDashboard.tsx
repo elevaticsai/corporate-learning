@@ -11,7 +11,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { loginIntsructor, getCourseStatusDistribution, getModuleCounts, getInstructorModules, deleteModule } from '../../utils/api.js';  // Import the API functions
+import { loginIntsructor, getCourseStatusDistribution, getModuleCounts, getInstructorModules, deleteModule } from '../../utils/api.js';
+
 const courseEngagementData = [
   { month: 'Jan', students: 65 },
   { month: 'Feb', students: 85 },
@@ -20,6 +21,7 @@ const courseEngagementData = [
   { month: 'May', students: 230 },
   { month: 'Jun', students: 280 },
 ];
+
 const COLORS = [
   '#3B82F6', // Blue
   '#10B981', // Green
@@ -38,43 +40,14 @@ const COLORS = [
   '#FB923C', // Orange
 ];
 
-const coursesData = [
-  {
-    id: 1,
-    name: 'Mandatory POSH Training',
-    category: 'Compliance',
-    status: 'Published',
-    students: 156,
-    lastUpdated: '2024-03-15',
-    thumbnail: 'https://images.unsplash.com/photo-1531545514256-b1400bc00f31?w=800&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 2,
-    name: 'Business Code of Conduct',
-    category: 'Professional Ethics',
-    status: 'Pending',
-    students: 0,
-    lastUpdated: '2024-03-18',
-    thumbnail: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&q=60',
-  },
-  {
-    id: 3,
-    name: 'Training on Grievance Management',
-    category: 'Management',
-    status: 'Published',
-    students: 89,
-    lastUpdated: '2024-03-10',
-    thumbnail: 'https://images.unsplash.com/photo-1552581234-26160f608093?w=800&auto=format&fit=crop&q=60',
-  },
-];
 
 const categories = ['All Categories', 'Compliance', 'Professional Ethics', 'Management', 'Technical', 'Soft Skills'];
 
-const MetricCard = ({ icon: Icon, title, value, trend }: { icon: any, title: string, value: string, trend?: string }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+const MetricCard = ({ icon: Icon, title, value, trend }) => (
+  <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
     <div className="flex items-center justify-between">
-      <div className="p-2 bg-blue-50 rounded-lg">
-        <Icon className="w-6 h-6 text-blue-500" />
+      <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+        <Icon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
       </div>
       {trend && (
         <span className={`text-sm ${trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
@@ -82,8 +55,8 @@ const MetricCard = ({ icon: Icon, title, value, trend }: { icon: any, title: str
         </span>
       )}
     </div>
-    <h3 className="mt-4 text-gray-600 text-sm font-medium">{title}</h3>
-    <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
+    <h3 className="mt-4 text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
+    <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
   </div>
 );
 
@@ -96,7 +69,7 @@ const InstructorDashboard = () => {
   // State to store fetched data
   const [courseStatusData, setCourseStatusData] = useState([]);
   const [moduleCounts, setModuleCounts] = useState(null);
-  const [coursesData, setCoursesData] = useState([]);  // You can also populate this with API data
+  const [coursesData, setCoursesData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -106,19 +79,16 @@ const InstructorDashboard = () => {
       // Fetch course status distribution and module counts
       const statusDistribution = await getCourseStatusDistribution(token);
       const counts = await getModuleCounts(token);
-      // Update state with fetched data
-      console.log(statusDistribution, "statusDistribution")
-      console.log(counts, "counts")
       setCourseStatusData(statusDistribution);
       setModuleCounts(counts);
 
-      // You can also fetch courses here if needed
+      // Fetch courses
       const courses = await getInstructorModules(token);
       setCoursesData(courses);
     };
 
     fetchData();
-  }, []);  // Empty dependency array ensures this only runs once on component mount
+  }, []);
 
   const handleCreateCourse = (courseId) => {
     navigate('/courses/create');
@@ -127,8 +97,6 @@ const InstructorDashboard = () => {
   const handleEditCourse = (courseId) => {
     navigate('/courses/edit/' + courseId);
   };
-
-
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
@@ -144,14 +112,13 @@ const InstructorDashboard = () => {
         prevCourses.filter((course) => course._id !== courseToDelete)
       );
 
-      setShowConfirmModal(false); // Close modal after deleting
+      setShowConfirmModal(false);
       setCourseToDelete(null);
     } catch (error) {
       console.error("Error deleting course:", error);
     }
   };
 
-  // Open the confirmation modal
   const confirmDelete = (courseId) => {
     setCourseToDelete(courseId);
     setShowConfirmModal(true);
@@ -161,59 +128,23 @@ const InstructorDashboard = () => {
     <div className="space-y-6">
       {/* Delete Confirmation Modal */}
       {showConfirmModal && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay
-          backdropFilter: "blur(5px)", // Blurred background
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000,
-        }}>
-          <div style={{
-            backgroundColor: "white",
-            padding: "25px",
-            borderRadius: "12px",
-            boxShadow: "0 5px 15px rgba(0,0,0,0.2)",
-            textAlign: "center",
-            width: "350px",
-            animation: "fadeIn 0.3s ease-in-out"
-          }}>
-            <h2 style={{ fontSize: "20px", color: "#333" }}>Confirm Deletion</h2>
-            <p style={{ margin: "15px 0", color: "#666" }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-lg text-center w-80 animate-fadeIn">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Confirm Deletion</h2>
+            <p className="my-4 text-gray-600 dark:text-gray-400">
               Are you sure you want to delete this course? This action cannot be undone.
             </p>
-
-            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-              {/* Cancel Button */}
+            <div className="flex justify-center gap-3">
               <button
                 onClick={() => setShowConfirmModal(false)}
-                style={{
-                  padding: "10px 15px",
-                  backgroundColor: "#ccc",
-                  color: "#333",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  border: "none"
-                }}>
+                className="px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 transition"
+              >
                 Cancel
               </button>
-
-              {/* Delete Button */}
               <button
                 onClick={handleDeleteCourse}
-                style={{
-                  padding: "10px 15px",
-                  backgroundColor: "red",
-                  color: "white",
-                  borderRadius: "5px",
-                  cursor: "pointer",
-                  border: "none"
-                }}>
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
                 Delete
               </button>
             </div>
@@ -221,12 +152,11 @@ const InstructorDashboard = () => {
         </div>
       )}
 
-
       {/* Header with Welcome Message and Create Button */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Welcome, Instructor</h1>
-          <p className="text-gray-500">Manage your courses and track their performance</p>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Welcome, Instructor</h1>
+          <p className="text-gray-500 dark:text-gray-400">Manage your courses and track their performance</p>
         </div>
         <button
           onClick={handleCreateCourse}
@@ -242,27 +172,27 @@ const InstructorDashboard = () => {
         <MetricCard
           icon={BookOpen}
           title="Total Courses"
-          value={moduleCounts?.total || "0"}  // Assuming 'totalCourses' is a field
+          value={moduleCounts?.total || "0"}
           trend="+12 this month"
         />
         <MetricCard
           icon={CheckCircle}
           title="Published Courses"
-          value={moduleCounts?.published || "0"}  // Assuming 'publishedCourses' is a field
+          value={moduleCounts?.published || "0"}
           trend="+5 this week"
         />
         <MetricCard
           icon={Clock}
           title="Pending Approval"
-          value={moduleCounts?.pending || "0"}  // Assuming 'pendingCourses' is a field
+          value={moduleCounts?.pending || "0"}
         />
       </div>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Course Status Distribution */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Course Status Distribution</h3>
+        <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Course Status Distribution</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -288,8 +218,8 @@ const InstructorDashboard = () => {
         </div>
 
         {/* Student Engagement Trend */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Student Engagement Trend</h3>
+        <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Student Engagement Trend</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={courseEngagementData}>
@@ -305,10 +235,10 @@ const InstructorDashboard = () => {
       </div>
 
       {/* Courses Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
+      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700 overflow-hidden">
+        <div className="p-6 border-b border-gray-100 dark:border-dark-700">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <h3 className="text-lg font-medium text-gray-900">Your Courses</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Your Courses</h3>
             <div className="flex flex-wrap gap-4">
               {/* Search */}
               <div className="relative">
@@ -316,7 +246,7 @@ const InstructorDashboard = () => {
                 <input
                   type="text"
                   placeholder="Search courses..."
-                  className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="pl-10 pr-4 py-2 border border-gray-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white placeholder-gray-400"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -325,7 +255,7 @@ const InstructorDashboard = () => {
               {/* Category Filter */}
               <div className="relative">
                 <select
-                  className="appearance-none pl-4 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="appearance-none pl-4 pr-10 py-2 border border-gray-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -341,27 +271,27 @@ const InstructorDashboard = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
           {coursesData.map(course => (
-            <div key={course._id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div key={course._id} className="bg-white dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700 overflow-hidden">
               <img src={course.imgUrl} alt={course.title} className="w-full h-48 object-cover" />
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-500">{course.category}</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.status === 'published' ? 'bg-green-100 text-green-800' : course.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>{course.status}</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">{course.category}</span>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.status === 'published' ? 'bg-green-100 text-green-800' : course.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                    {course.status}
+                  </span>
                 </div>
-                <h4 className="text-lg font-medium text-gray-900 mb-2">{course.title}</h4>
-                <span className="text-sm text-gray-500">Last updated: {new Date(course.updatedAt).toLocaleDateString()}</span>
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{course.title}</h4>
+                <span className="text-sm text-gray-500 dark:text-gray-400">Last updated: {new Date(course.updatedAt).toLocaleDateString()}</span>
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => handleEditCourse(course._id)}
-                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg"
                   >
                     <Edit className="w-4 h-4" />
                   </button>
-
-
                   <button
                     onClick={() => confirmDelete(course._id)}
-                    className="p-2 text-gray-600 hover:text-red-600"
+                    className="p-2 text-gray-600 dark:text-gray-400 hover:text-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

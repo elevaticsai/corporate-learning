@@ -319,26 +319,24 @@ const TrainingDetails = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 dark:bg-dark-900">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center space-x-2 text-sm text-gray-500">
-        <Link to="/employee" className="hover:text-gray-700">
+      <nav className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+        <Link to="/employee" className="hover:text-gray-700 dark:hover:text-white">
           Home
         </Link>
         <ChevronNextIcon className="w-4 h-4" />
-        <Link to="/employee" className="hover:text-gray-700">
+        <Link to="/employee" className="hover:text-gray-700 dark:hover:text-white">
           Dashboard
         </Link>
         <ChevronNextIcon className="w-4 h-4" />
-        <span className="text-gray-900">Course</span>
+        <span className="text-gray-900 dark:text-white">Course</span>
       </nav>
 
-      {/* Conditional Rendering for Tabs */}
       {activeTab === "overview" ? (
         <>
-          {/* Course Overview */}
           {trainingDetails && (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700 overflow-hidden">
               {/* Course Banner */}
               <div className="relative h-64">
                 <img
@@ -357,22 +355,22 @@ const TrainingDetails = () => {
               {/* Course Chapters */}
               <div className="p-8 space-y-8">
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     About This Course
                   </h2>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                     {trainingDetails.description}
                   </p>
-                </div>{" "}
+                </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Course Content
                   </h2>
                   <div className="space-y-4">
                     {trainingDetails.chapters.map((chapter: Chapter) => (
                       <div
                         key={chapter._id}
-                        className="bg-gray-50 rounded-lg hover:bg-gray-100 transition cursor-pointer overflow-hidden"
+                        className="bg-gray-50 dark:bg-dark-700 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-600 transition cursor-pointer overflow-hidden"
                         onClick={() => handleChapterSelect(chapter._id)}
                       >
                         <div className="p-4 flex items-center justify-between">
@@ -385,28 +383,26 @@ const TrainingDetails = () => {
                               <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
                             )}
                             <div>
-                              <h3 className="font-medium text-gray-900">
+                              <h3 className="font-medium text-gray-900 dark:text-white">
                                 {chapter.title}
                               </h3>
                               <p
-                                className="text-sm text-gray-600 mt-1 line-clamp-2"
-                                dangerouslySetInnerHTML={{
-                                  __html: chapter.description,
-                                }}
+                                className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2"
+                                dangerouslySetInnerHTML={{ __html: chapter.description }}
                               />
                             </div>
                           </div>
                           <div className="flex items-center space-x-4 ml-4">
-                            <span className="text-sm text-gray-500 whitespace-nowrap">
+                            <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                               {chapter.duration}
                             </span>
                             {chapter.isCompleted === true && (
-                              <span className="px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium whitespace-nowrap">
+                              <span className="px-2.5 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-medium whitespace-nowrap">
                                 Completed
                               </span>
                             )}
                             {chapter.isCompleted === false && (
-                              <span className="px-2.5 py-1 bg-green-100 text-red-800 rounded-full text-xs font-medium whitespace-nowrap">
+                              <span className="px-2.5 py-1 bg-green-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium whitespace-nowrap">
                                 Pending
                               </span>
                             )}
@@ -424,28 +420,23 @@ const TrainingDetails = () => {
         <>
           {questionPanel === "content" ? (
             <>
-              {/* Main Content Panel */}
               <div className="flex h-[calc(100vh-12rem)]">
-                {/* Content Panel */}
                 {selectedChapter ? (
-                  <div className="w-1/2 p-8 border-r border-gray-100 overflow-y-auto bg-white rounded-xl shadow-sm">
-                    <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+                  <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-xl shadow-sm">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
                       {selectedChapter.title}
                     </h2>
                     <div
-                      className="prose prose-blue max-w-none"
-                      dangerouslySetInnerHTML={{
-                        __html: selectedChapter.description,
-                      }}
+                      className="prose prose-blue max-w-none dark:prose-dark"
+                      dangerouslySetInnerHTML={{ __html: selectedChapter.description }}
                     ></div>
                   </div>
                 ) : (
-                  <div className="w-1/2 p-8 border-r border-gray-100 overflow-y-auto bg-white rounded-xl shadow-sm">
-                    <p className="text-gray-500">Loading chapter content...</p>
+                  <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-xl shadow-sm">
+                    <p className="text-gray-500 dark:text-gray-300">Loading chapter content...</p>
                   </div>
                 )}
 
-                {/* Media Panel */}
                 <div className="w-1/2 flex flex-col">
                   <div className="relative flex-1 bg-gray-900">
                     <img
@@ -453,10 +444,8 @@ const TrainingDetails = () => {
                       alt={selectedChapter?.title || "Media"}
                       className="w-full h-full object-cover"
                     />
-                    {/* Media Controls */}
                     <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
                       <div className="flex items-center justify-between text-white">
-                        {/* Media Controls */}
                         {selectedChapter?.content?.audioUrl && (
                           <div className="absolute bottom-4 left-4 flex items-center space-x-4">
                             <audio
@@ -464,7 +453,6 @@ const TrainingDetails = () => {
                               src={selectedChapter?.content?.audioUrl || ""}
                               onCanPlay={() => console.log("Audio is ready!")}
                             />
-
                             <button onClick={toggleAudio}>
                               {isPlaying ? (
                                 <Pause className="w-6 h-6 text-white" />
@@ -472,8 +460,7 @@ const TrainingDetails = () => {
                                 <PlayCircle className="w-6 h-6 text-white" />
                               )}
                             </button>
-
-                            {/* <button onClick={toggleMute}>
+                               {/* <button onClick={toggleMute}>
                               {isMuted ? (
                                 <VolumeX className="w-6 h-6 text-white" />
                               ) : (
@@ -485,9 +472,7 @@ const TrainingDetails = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Navigation Buttons */}
-                  <div className="p-4 bg-gray-50 border-t border-gray-100">
+                  <div className="p-4 bg-gray-50 dark:bg-dark-700 border-t border-gray-100 dark:border-dark-700">
                     <div className="flex justify-between items-center">
                       <button
                         onClick={() =>
@@ -498,7 +483,7 @@ const TrainingDetails = () => {
                         className={`flex items-center space-x-2 ${
                           !getPreviousChapter()
                             ? "text-gray-300"
-                            : "text-gray-500"
+                            : "text-gray-500 dark:text-gray-300"
                         }`}
                       >
                         <ChevronLeft className="w-5 h-5" />
@@ -514,7 +499,7 @@ const TrainingDetails = () => {
                           className={`flex items-center space-x-2 ${
                             !getNextChapter()
                               ? "text-gray-300"
-                              : "text-gray-500"
+                              : "text-gray-500 dark:text-gray-300"
                           }`}
                         >
                           <span>Next Chapter</span>
@@ -523,7 +508,7 @@ const TrainingDetails = () => {
                       ) : (
                         <button
                           onClick={() => fetchQuestion(nextItem?.data || "")}
-                          className="flex items-center space-x-2"
+                          className="flex items-center space-x-2 text-gray-500 dark:text-gray-300"
                         >
                           Start Questions
                         </button>
@@ -535,18 +520,15 @@ const TrainingDetails = () => {
             </>
           ) : (
             <>
-              {/* Question Panel */}
               <div className="p-8 space-y-6">
                 {question ? (
                   <h3
-                    className="text-lg font-medium text-gray-900 mb-4"
+                    className="text-lg font-medium text-gray-900 dark:text-white mb-4"
                     dangerouslySetInnerHTML={{ __html: question?.question }}
                   ></h3>
                 ) : (
-                  <h3 className="text-gray-500">Loading question...</h3>
+                  <h3 className="text-gray-500 dark:text-gray-300">Loading question...</h3>
                 )}
-
-                {/* Options */}
                 <ul className="space-y-3">
                   {question?.options.map((option, index) => (
                     <li key={index}>
@@ -554,7 +536,7 @@ const TrainingDetails = () => {
                         className={`flex items-center space-x-4 p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
                           selectedAnswers.includes(option)
                             ? "border-blue-500 bg-blue-50 shadow-md"
-                            : "border-gray-300 bg-white hover:bg-gray-100"
+                            : "border-gray-300 bg-white dark:bg-dark-700 hover:bg-gray-100 dark:hover:bg-dark-600"
                         }`}
                       >
                         <input
@@ -574,15 +556,13 @@ const TrainingDetails = () => {
                         >
                           {selectedAnswers.includes(option) && "✓"}
                         </span>
-                        <span className="text-gray-700 text-lg font-medium">
+                        <span className="text-gray-700 dark:text-white text-lg font-medium">
                           {option}
                         </span>
                       </label>
                     </li>
                   ))}
                 </ul>
-
-                {/* Action Buttons */}
                 <div className="mt-6 flex justify-between">
                   <button
                     onClick={handlePrevQuestion}
@@ -596,7 +576,6 @@ const TrainingDetails = () => {
                     <ChevronLeft className="w-5 h-5 inline-block mr-2" />
                     Previous
                   </button>
-
                   <button
                     onClick={handleAnswerSubmit}
                     className="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition-all duration-200"
@@ -604,8 +583,6 @@ const TrainingDetails = () => {
                     Submit
                   </button>
                 </div>
-
-                {/* Popup for Correct/Incorrect Answer */}
                 {isPopupVisible && (
                   <div
                     onClick={closePopup}
@@ -613,11 +590,11 @@ const TrainingDetails = () => {
                   >
                     <div
                       onClick={(e) => e.stopPropagation()}
-                      className="bg-white p-6 rounded-xl shadow-lg text-center max-w-md w-full relative animate-fadeIn"
+                      className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-lg text-center max-w-md w-full relative animate-fadeIn"
                     >
                       <button
                         onClick={closePopup}
-                        className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl"
+                        className="absolute top-2 right-2 text-gray-500 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 text-2xl"
                       >
                         ×
                       </button>
@@ -627,8 +604,6 @@ const TrainingDetails = () => {
                           <h2 className="text-green-600 font-semibold text-xl mt-4">
                             Correct Answer!
                           </h2>
-
-                          {/* Check if this is the last question */}
                           {isLastQuestion ? (
                             <button
                               onClick={() => navigate("/employee")}

@@ -474,75 +474,78 @@ const Dashboard = () => {
         </div>
       ) : null}
 
-      {selectedApproval && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Reject Course: {selectedApproval.title}
-            </h3>
-            {/* <textarea
-              value={rejectionComment}
-              onChange={(e) => setRejectionComment(e.target.value)}
-              placeholder="Please provide a reason for rejection..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              rows={4}
-            /> */}
-            <h2>Are you sure you want to reject the course?</h2>
-            <div className="flex justify-end space-x-3 mt-4">
-              <button
-                onClick={() => setSelectedApproval(null)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-700"
+{selectedApproval && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white dark:bg-dark-800 rounded-lg p-6 w-full max-w-md">
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        Reject Course: {selectedApproval.title}
+      </h3>
+      <textarea
+        value={rejectionComment}
+        onChange={(e) => setRejectionComment(e.target.value)}
+        placeholder="Please provide a reason for rejection..."
+        className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
+        rows={4}
+      />
+      <h2 className="text-lg text-gray-900 dark:text-white mt-4">
+        Are you sure you want to reject the course?
+      </h2>
+      <div className="flex justify-end space-x-3 mt-4">
+        <button
+          onClick={() => setSelectedApproval(null)}
+          className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={() =>
+            navigate(`/course-review/${selectedApproval.id}`)
+          }
+          className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+          title="View Details"
+        >
+          Review Course
+        </button>
+        <button
+          onClick={() => handleReject(selectedApproval.id)}
+          className={`px-4 py-2 rounded-lg text-white transition ${
+            isRejecting === selectedApproval.id
+              ? "bg-red-400 cursor-not-allowed"
+              : "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+          }`}
+          disabled={isRejecting === selectedApproval.id}
+        >
+          {isRejecting === selectedApproval.id ? (
+            <div className="flex items-center">
+              <svg
+                className="animate-spin h-5 w-5 mr-2 text-white"
+                viewBox="0 0 24 24"
               >
-                Cancel
-              </button>
-              <button
-                onClick={() =>
-                  navigate(`/course-review/${selectedApproval.id}`)
-                }
-                className="px-4 py-2 text-blue-600 hover:text-blue-700"
-                title="View Details"
-              >
-                Review Course
-              </button>
-              <button
-                onClick={() => handleReject(selectedApproval.id)}
-                className={`px-4 py-2 rounded-lg text-white transition ${
-                  isRejecting === selectedApproval.id
-                    ? "bg-red-400 cursor-not-allowed"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
-                disabled={isRejecting === selectedApproval.id}
-              >
-                {isRejecting === selectedApproval.id ? (
-                  <div className="flex items-center">
-                    <svg
-                      className="animate-spin h-5 w-5 mr-2 text-white"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 11-8 8z"
-                      ></path>
-                    </svg>
-                    Rejecting...
-                  </div>
-                ) : (
-                  "Reject Course"
-                )}
-              </button>
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 11-8 8z"
+                ></path>
+              </svg>
+              Rejecting...
             </div>
-          </div>
-        </div>
-      )}
+          ) : (
+            "Reject Course"
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

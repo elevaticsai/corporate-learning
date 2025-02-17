@@ -40,9 +40,9 @@ function App() {
           theme="light"
         />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<OnboardingForm />} />
+          <Route path="/signup" element={<OnboardingForm />} />
           
           {/* Admin routes with ThemeProvider */}
           <Route

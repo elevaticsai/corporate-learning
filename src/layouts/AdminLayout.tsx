@@ -47,22 +47,10 @@ const menuItems = [
     roles: ["EMPLOYEE"],
   },
   {
-    title: "Clients",
-    icon: Users,
-    path: "/clients",
-    roles: ["SUPER_ADMIN"],
-  },
-  {
     title: "Courses",
     icon: BookOpen,
     path: "/courses/create",
     roles: ["SUPER_ADMIN", "INSTRUCTOR"],
-  },
-  {
-    title: "Schedule",
-    icon: Calendar,
-    path: "/schedule",
-    roles: ["SUPER_ADMIN", "HR"],
   },
   {
     title: "Settings",
@@ -82,21 +70,18 @@ const AdminLayout = () => {
   const handleLogout = () => {
     signout();
     setUserMenuOpen(false);
-    navigate("/login");
+    navigate("/");
   };
   const user = useSelector((state: any) => state.auth.user);
   const userRole = user?.role || "GUEST";
 
   return (
-    // Updated outer container with dark mode background variant
     <div className="flex bg-gray-50 dark:bg-dark-900 min-h-screen">
-      {/* Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 transform transition-transform duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0 lg:static flex-shrink-0 flex flex-col`}
       >
-        {/* Logo */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-dark-700">
           <span className="text-xl font-semibold text-gray-800 dark:text-white">
             Elevatics360
@@ -109,7 +94,6 @@ const AdminLayout = () => {
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 p-4 space-y-1">
           {menuItems
             .filter((item) => item.roles.includes(userRole))
@@ -134,7 +118,6 @@ const AdminLayout = () => {
             })}
         </nav>
 
-        {/* Bottom Section with Theme Toggle and User Menu */}
         <div className="border-t border-gray-200 dark:border-dark-700 p-4">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
@@ -166,19 +149,7 @@ const AdminLayout = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        {/* <header className="h-16 bg-white border-b dark:bg-dark-800 dark:border-dark-700 border-gray-200 flex items-center px-4 lg:px-8">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </header> */}
-
-        {/* Page Content */}
         <main className="p-4 lg:p-8 dark:bg-dark-900">
           <Outlet />
         </main>

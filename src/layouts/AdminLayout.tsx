@@ -4,19 +4,17 @@ import { useAuthStore } from "../store/authStore";
 import { useSelector } from "react-redux";
 import {
   LayoutDashboard,
-  Users,
   BookOpen,
-  Calendar,
   Settings,
   GraduationCap,
   School,
   LogOut,
-  Menu,
   X,
-  ChevronDown,
   User,
   Moon,
   Sun,
+  UserPlus,
+  CreditCard,
 } from "lucide-react";
 
 import { useTheme } from "../contexts/ThemeContext";
@@ -29,9 +27,21 @@ const menuItems = [
     roles: ["SUPER_ADMIN"],
   },
   {
-    title: "HR Dashboard",
+    title: "Dashboard",
     icon: GraduationCap,
     path: "/hr",
+    roles: ["MANAGER"],
+  },
+  {
+    title: "Manage Users",
+    icon: UserPlus,
+    path: "/hr/user-management",
+    roles: ["MANAGER"],
+  },
+  {
+    title: "Upgrade Credits",
+    icon: CreditCard,
+    path: "/signup",
     roles: ["MANAGER"],
   },
   {
@@ -76,7 +86,7 @@ const AdminLayout = () => {
   const userRole = user?.role || "GUEST";
 
   return (
-    <div className="flex bg-gray-60 dark:bg-dark-900 min-h-screen">
+    <div className="flex bg-gray-50 dark:bg-dark-900 min-h-screen">
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 transform transition-transform duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -103,13 +113,14 @@ const AdminLayout = () => {
                 <NavLink
                   key={item.path}
                   to={item.path}
-                  className={({ isActive }) =>
-                    `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
+                  end
+                  className={({ isActive }) => {
+                    return `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
                       isActive
                         ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                         : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700"
-                    }`
-                  }
+                    }`;
+                  }}
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.title}

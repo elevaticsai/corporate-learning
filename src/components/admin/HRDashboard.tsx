@@ -393,14 +393,12 @@ const HRDashboard = () => {
               <BarChart data={trainingEngagementData}>
                 <XAxis
                   dataKey="name"
-                  axisLine={false}
                   tickLine={false}
                   fontSize={12}
                   dy={10}
                   stroke="#94a3b8"
                 />
                 <YAxis
-                  axisLine={false}
                   tickLine={false}
                   stroke="#94a3b8"
                   fontSize={12}
@@ -497,38 +495,79 @@ const HRDashboard = () => {
                   Assigned Modules
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Overall Progress
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Action
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-dark-700">
-              {employeeData.map((employee, idx) => (
-                <tr
-                  key={idx}
-                  className="hover:bg-gray-50 dark:hover:bg-dark-700/50 transition"
-                >
-                  <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                    {employee.name}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
-                    {employee.email}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
-                    {employee.modules.length}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <button
-                      onClick={() => {
-                        setSelectedEmployee(employee);
-                        setIsModalOpen(true);
-                      }}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {employeeData.map((employee, idx) => {
+                const totalProgress =
+                  employee.modules.length > 0
+                    ? employee.modules.reduce(
+                        (sum: any, module: any) => sum + module.progress,
+                        0
+                      ) / employee.modules.length
+                    : 0;
+
+                return (
+                  <tr
+                    key={idx}
+                    className="hover:bg-gray-50 dark:hover:bg-dark-700/50 transition"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                      {employee.name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
+                      {employee.email}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
+                      {employee.modules.length}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          totalProgress === 100
+                            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                            : totalProgress >= 50
+                            ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                            : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+                        }`}
+                      >
+                        {totalProgress.toFixed(2)}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <button
+                        onClick={() => {
+                          setSelectedEmployee(employee);
+                          setIsModalOpen(true);
+                        }}
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          className="lucide lucide-ellipsis-vertical"
+                        >
+                          <circle cx="12" cy="12" r="1" />
+                          <circle cx="12" cy="5" r="1" />
+                          <circle cx="12" cy="19" r="1" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -561,6 +600,56 @@ const HRDashboard = () => {
                 </svg>
               </button>
             </div>
+
+            {/* Calculate Overall Progress */}
+            <div className="mt-4">
+              <h4 className="text-md font-semibold dark:text-white mb-3">
+                Overall Progress
+              </h4>
+              {selectedEmployee.modules.length > 0 ? (
+                (() => {
+                  const totalProgress =
+                    selectedEmployee.modules.reduce(
+                      (sum: any, module: any) => sum + module.progress,
+                      0
+                    ) / selectedEmployee.modules.length;
+
+                  const pieData = [
+                    { name: "Completed", value: totalProgress },
+                    { name: "Remaining", value: 100 - totalProgress },
+                  ];
+
+                  const COLORS = ["#10B981", "#3B82F6"];
+
+                  return (
+                    <div className="flex justify-center">
+                      <PieChart width={200} height={200}>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {pieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </div>
+                  );
+                })()
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">
+                  No modules assigned.
+                </p>
+              )}
+            </div>
+
+            {/* Modules Table */}
             <div className="mt-4">
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-dark-700/50">
@@ -592,8 +681,8 @@ const HRDashboard = () => {
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
                             module.status === "completed"
-                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                              ? "bg-green-100 text-green-800 dark:bg-green-600 dark:text-green-200"
+                              : "bg-blue-100 text-blue-800 dark:bg-blue-500 dark:text-blue-200"
                           }`}
                         >
                           {module.status}

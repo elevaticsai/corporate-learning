@@ -295,7 +295,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="space-y-6 pl-5">
+    <div className="pl-5">
       <ToastContainer
         position="top-center"
         autoClose={3000}
@@ -309,12 +309,12 @@ const UserManagement = () => {
         theme="light"
       />
 
-      <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+      <h1 className="text-2xl pt-10 font-semibold text-gray-900 dark:text-white">
         User Management
       </h1>
 
       {/* Add Employee Form */}
-      <div className="bg-white p-6 rounded-lg shadow-sm mb-6 dark:bg-dark-800 dark:border-dark-700">
+      <div className="bg-white mt-5 p-6 rounded-lg shadow-sm mb-6 dark:bg-dark-800 dark:border-dark-700">
         <h2 className="text-xl font-semibold mb-4">Add New Employee</h2>
         <form onSubmit={handleAddEmployee} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

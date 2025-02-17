@@ -1,18 +1,10 @@
 import { useState, useEffect } from "react";
-import {
-  Users,
-  CheckCircle,
-  Clock,
-  Search,
-  ChevronDown,
-  UserPlus,
-} from "lucide-react";
+import { Users, CheckCircle, Clock, Search, ChevronDown } from "lucide-react";
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
   ResponsiveContainer,
@@ -21,7 +13,7 @@ import {
   Cell,
 } from "recharts";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import axios from "axios";
 
 interface EmployeeType {
   name: string;
@@ -97,8 +89,16 @@ const HRDashboard = () => {
   const [trainingEngagementData, setTrainingEngagementData] = useState([]);
 
   const [employeeData, setEmployeeData] = useState<any[]>([]);
+  const [creditUsed, setCreditUsed] = useState(0);
+  const [remainingCredit, setRemainingCredit] = useState(0);
 
   const token = useSelector((state: any) => state.auth.token);
+  const user = useSelector((state: any) => state.auth.user);
+
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeType | null>(
+    null
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
@@ -188,7 +188,7 @@ const HRDashboard = () => {
             {
               name: "Pending",
               value: statusMap.get("Pending") ?? 0,
-              color: "#F59E0B",
+              color: "#3B82F6",
             },
           ]);
         } else {
@@ -199,10 +199,28 @@ const HRDashboard = () => {
       }
     };
 
+    const fetchCreditStatus = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:4000/api/manager-credit/credit-status/${user?._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setCreditUsed(response.data.data.usedCredits);
+        setRemainingCredit(response.data.data.availableCredits);
+      } catch (error) {
+        console.error("Error fetching credit status:", error);
+      }
+    };
+
     fetchEmployeeData();
     fetchTrainingData();
     fetchModuleStatus();
-  }, []);
+    fetchCreditStatus();
+  }, [user]);
 
   useEffect(() => {
     const fetchEmployeeData = async () => {
@@ -223,25 +241,13 @@ const HRDashboard = () => {
         const data = await response.json();
 
         if (data.success && Array.isArray(data.data)) {
-          // Flatten employee data by creating a row per module
-          const formattedData = data.data.flatMap((employee: EmployeeType) =>
-            employee.modules.map((module: ModuleType) => ({
-              name: employee.name,
-              email: employee.email,
-              title: module.title,
-              category: module.category,
-              status: module.status,
-              progress: module.progress,
-            }))
-          );
-
-          setEmployeeData(formattedData);
+          // Don't flatten the data, keep the original structure
+          setEmployeeData(data.data);
         }
       } catch (error) {
         console.error("Error fetching employee data:", error);
       }
     };
-
     fetchEmployeeData();
   }, []);
 
@@ -283,21 +289,18 @@ const HRDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   return (
-    <div className="space-y-6 pl-5">
+    <div className="pl-5">
       {/* Header with Filters */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-50 dark:border-dark-700">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          HR Dashboard
+          Hi, {user?.username || "Guest User"}
         </h1>
-        <Link
-          to="/hr/user-management"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700"
-        >
-          <UserPlus size={20} /> Manage Users
-        </Link>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
+          Track the learning progress of your employees and manage training!
+        </p>
       </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex pt-10 flex-wrap gap-4">
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -344,7 +347,7 @@ const HRDashboard = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid pt-10 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           icon={Users}
           title="Total Employees"
@@ -363,13 +366,13 @@ const HRDashboard = () => {
         />
         <MetricCard
           icon={CheckCircle}
-          title="Completed Trainings"
-          value={completed.toString()}
+          title="Used Credits"
+          value={(creditUsed ?? 0).toString()}
         />
         <MetricCard
           icon={Clock}
-          title="Pending Trainings"
-          value={pending.toString()}
+          title="Pending Credits"
+          value={(remainingCredit ?? 0).toString()}
         />
         {/* <MetricCard
           icon={AlertCircle}
@@ -379,7 +382,7 @@ const HRDashboard = () => {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid pt-10 grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Training Engagement Chart */}
         <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
@@ -387,11 +390,7 @@ const HRDashboard = () => {
           </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={trainingEngagementData}
-                barGap={2} // Adjusting the gap between bars
-                barCategoryGap={0} // Adjusting the spacing between groups of bars
-              >
+              <BarChart data={trainingEngagementData}>
                 <XAxis
                   dataKey="name"
                   axisLine={false}
@@ -422,16 +421,16 @@ const HRDashboard = () => {
                   stackId="a"
                   fill="#10B981"
                   stroke="none"
-                  barSize={40} // Adjust the width of the bars
-                  radius={[4, 4, 0, 0]}
+                  barSize={20} // Adjust the width of the bars
+                  radius={[10, 10, 10, 10]}
                 />
                 <Bar
                   dataKey="pending"
                   stackId="a"
-                  fill="#F59E0B"
+                  fill="#3B82F6"
                   stroke="none"
                   barSize={20} // Adjust the width of the bars
-                  radius={[4, 4, 0, 0]}
+                  radius={[10, 10, 10, 10]}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -450,8 +449,9 @@ const HRDashboard = () => {
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
+                  innerRadius={80}
                   outerRadius={100}
+                  paddingAngle={5}
                   dataKey="value"
                   nameKey="name"
                 >
@@ -477,28 +477,11 @@ const HRDashboard = () => {
       </div>
 
       {/* Employee Table */}
-      <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 overflow-hidden dark:border-dark-700">
+      <div className="bg-white mt-10 dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 overflow-hidden dark:border-dark-700">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center dark:border-dark-700">
           <h3 className="text-lg font-medium dark:text-white text-gray-900">
             Employee Training Status
           </h3>
-          {/* <div className="flex gap-4">
-            <button
-              onClick={handleSendReminders}
-              disabled={selectedEmployees.length === 0}
-              className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:ring-4 focus:ring-blue-200 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Send Reminders
-            </button>
-            <button
-              onClick={handleExportData}
-              className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-100 transition"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export Data
-            </button>
-          </div> */}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -511,13 +494,10 @@ const HRDashboard = () => {
                   Email
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Module
+                  Assigned Modules
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Category
-                </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Status
+                  Action
                 </th>
               </tr>
             </thead>
@@ -527,13 +507,6 @@ const HRDashboard = () => {
                   key={idx}
                   className="hover:bg-gray-50 dark:hover:bg-dark-700/50 transition"
                 >
-                  {/* <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 text-blue-500 focus:ring-blue-500 border-gray-300 rounded"
-                      onChange={() => handleEmployeeSelect(employee.id)} // Add checkbox functionality
-                    />
-                  </td> */}
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                     {employee.name}
                   </td>
@@ -541,19 +514,18 @@ const HRDashboard = () => {
                     {employee.email}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
-                    {employee.title}
+                    {employee.modules.length}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500 dark:text-white">
-                    {employee.category}
-                  </td>
-                  <td
-                    className={`px-6 py-4 ${
-                      employee.status === "pending"
-                        ? "text-yellow-500"
-                        : "text-green-500"
-                    }`}
-                  >
-                    {employee.status}
+                  <td className="px-6 py-4 text-sm">
+                    <button
+                      onClick={() => {
+                        setSelectedEmployee(employee);
+                        setIsModalOpen(true);
+                      }}
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                    >
+                      View Details
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -561,6 +533,83 @@ const HRDashboard = () => {
           </table>
         </div>
       </div>
+
+      {/* Add Modal for Module Details */}
+      {isModalOpen && selectedEmployee && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-800 rounded-xl p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium dark:text-white">
+                Module Details - {selectedEmployee.name}
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-4">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-dark-700/50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Module
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Category
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Status
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                      Progress
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-dark-700">
+                  {selectedEmployee.modules.map((module, idx) => (
+                    <tr key={idx}>
+                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                        {module.title}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-white">
+                        {module.category}
+                      </td>
+                      <td className="px-4 py-3 text-sm">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            module.status === "completed"
+                              ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                              : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                          }`}
+                        >
+                          {module.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-white">
+                        {module.progress}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';  // Added useParams to get moduleId from URL
+import { useParams, useNavigate } from 'react-router-dom';  // Added useParams to get moduleId from URL 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import BasicInfo from './BasicInfo';
 import ChapterCreation from './ChapterCreation';
 import QuizCreation from './QuizCreation';
 import { createModule, loginIntsructor, getModuleById, updateModule } from '../../utils/api.js';
 import { FaCheckCircle } from "react-icons/fa"; // Green tick icon
+import { ChapterLayoutSelector, ChapterPreview } from './ChapterLayouts';
+import { Layout } from 'lucide-react';
 
 const CreateCourse = () => {
   const { courseId } = useParams(); // To get moduleId from URL if editing an existing course
@@ -20,8 +22,11 @@ const CreateCourse = () => {
     },
     chapters: [],
     quizzes: [],
+    // layout: '' // Added layout field
   });
   const [isEditMode, setIsEditMode] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(false);
+  const [showLayoutPreview, setShowLayoutPreview] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -31,7 +36,7 @@ const CreateCourse = () => {
         try {
           const token = await loginIntsructor();
           const module = await getModuleById(token, moduleId);  // Fetch the existing module data
-
+          
           console.log("Fetched Module Data:", module); // Log fetched data
 
           setCourseData({
@@ -43,6 +48,7 @@ const CreateCourse = () => {
             },
             chapters: module.chapters || [],
             quizzes: module.questions || [],
+            // layout: module.layout || ''
           });
         } catch (error) {
           console.error('Error fetching module for editing:', error);
@@ -53,81 +59,86 @@ const CreateCourse = () => {
   }, [moduleId]);
 
   const handleBasicInfoUpdate = (data) => {
-    setCourseData(prev => ({
-      ...prev,
-      basicInfo: { ...prev.basicInfo, ...data }
+    setCourseData(prev => ({ 
+      ...prev, 
+      basicInfo: { ...prev.basicInfo, ...data } 
     }));
   };
 
   const handleChapterUpdate = (chapters) => {
-    setCourseData(prev => ({
-      ...prev,
-      chapters
+    setCourseData(prev => ({ 
+      ...prev, 
+      chapters 
     }));
   };
 
   const handleQuizUpdate = (quizzes) => {
-    setCourseData(prev => ({
-      ...prev,
-      quizzes
+    setCourseData(prev => ({ 
+      ...prev, 
+      quizzes 
     }));
   };
 
-  const [successMessage, setSuccessMessage] = useState(false);
+  // const handleLayoutSelect = (layoutId) => {
+  //   setCourseData(prev => ({
+  //     ...prev, 
+  //     layout: layoutId }));
+  //   };
 
-  const handleSaveCourse = async () => {
-    console.log(courseData, "courseData")
-    setIsLoading(true);
-    try {
-      const token = await loginIntsructor();
-      const moduleData = {
-        title: courseData.basicInfo.title,
-        description: courseData.basicInfo.description,
-        imgUrl: courseData.basicInfo.image,
-        category: courseData.basicInfo.category,
-        chapters: courseData.chapters.map((chapter, index) => ({
-          title: chapter.title,
-          description: chapter.description,
-          order: index + 1,
-          template: "simple",
-          content: {
-            imgUrl: chapter.content?.imgUrl || chapter.image || "",
-            audioUrl: chapter.content?.audioUrl || chapter.audio || "",
-            videoUrl: chapter.content?.videoUrl || "www.google.com",
-          },
-        })),
-        questions: courseData.quizzes.map((quiz, index) => ({
-          title: quiz.title || "Test title",
-          question: quiz.question,
-          options: quiz.options,
-          type: quiz.type,
-          answer: quiz.correctAnswers? quiz.correctAnswers: quiz.answer,
-          order: courseData.chapters.length + index + 1,
-          template: "chapter-one",
-        })),
-      };
-
-      const response = isEditMode
-        ? await updateModule(token, moduleId, moduleData)
-        : await createModule(token, moduleData);
-
-      setSuccessMessage(true); // Show success popup
-
-      setTimeout(() => {
-        setSuccessMessage(false); // Hide message after 3 seconds
-        navigate("/instructor");
-      }, 3000);
-    } catch (error) {
-      console.error("Error saving course:", error);
-      alert("Failed to save course. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const handleSaveCourse = async () => {
+      console.log(courseData, "courseData");
+      setIsLoading(true);
+      try {
+          const token = await loginIntsructor();
+          const moduleData = {
+              title: courseData.basicInfo.title,
+              description: courseData.basicInfo.description,
+              imgUrl: courseData.basicInfo.image,
+              category: courseData.basicInfo.category,
+              // layout: courseData.layout,  // ✅ Added layout field
+              chapters: courseData.chapters.map((chapter, index) => ({
+                  title: chapter.title,
+                  description: chapter.description,
+                  order: index + 1,
+                  template: chapter.layout? chapter.layout: chapter.template,
+                  content: {
+                      imgUrl: chapter.content?.imgUrl || chapter.image || "",
+                      audioUrl: chapter.content?.audioUrl || chapter.audio || "",
+                      videoUrl: chapter.content?.videoUrl || "www.google.com",
+                  },
+              })),
+              questions: courseData.quizzes.map((quiz, index) => ({
+                  title: quiz.title || "Test title",
+                  question: quiz.question,
+                  options: quiz.options,
+                  type: quiz.type,
+                  answer: quiz.correctAnswers? quiz.correctAnswers: quiz.answer,
+                  order: courseData.chapters.length + index + 1,
+                  template: "chapter-one",
+              })),
+          };
+  
+          const response = isEditMode
+              ? await updateModule(token, moduleId, moduleData)
+              : await createModule(token, moduleData);
+  
+          setSuccessMessage(true); // Show success popup
+  
+          setTimeout(() => {
+              setSuccessMessage(false); // Hide message after 3 seconds
+              navigate("/instructor");
+          }, 3000);
+      } catch (error) {
+          console.error("Error saving course:", error);
+          alert("Failed to save course. Please try again.");
+      } finally {
+          setIsLoading(false);
+      }
+  };  
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {successMessage && (
+       {successMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white dark:bg-dark-800 p-8 rounded-xl shadow-lg text-center w-80 animate-fadeIn flex flex-col items-center">
             <FaCheckCircle size={50} color="green" />
@@ -151,12 +162,17 @@ const CreateCourse = () => {
         <Tabs defaultValue="basic-info" className="w-full">
           <div className="border-b border-gray-200 dark:border-dark-700">
             <TabsList className="flex">
-              <TabsTrigger
+            <TabsTrigger
                 value="basic-info"
                 className="flex-1 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:text-gray-700 focus:bg-gray-50"
               >
                 Basic Info
               </TabsTrigger>
+              {/* <TabsTrigger 
+                value="layout"
+                className="flex-1 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:text-gray-700 focus:bg-gray-50"
+                >Layout
+                </TabsTrigger> */}
               <TabsTrigger
                 value="chapters"
                 className="flex-1 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:text-gray-700 focus:bg-gray-50"
@@ -176,6 +192,24 @@ const CreateCourse = () => {
             <TabsContent value="basic-info">
               <BasicInfo data={courseData.basicInfo} onUpdate={handleBasicInfoUpdate} />
             </TabsContent>
+            
+            {/* <TabsContent value="layout">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-medium text-whitwe-900">Select Chapter Layout</h2>
+                    <p className="text-sm text-gray-500">Choose how your chapter content will be displayed</p>
+                  </div>
+                  {courseData.layout && (
+                    <button onClick={() => setShowLayoutPreview(true)} className="flex items-center px-4 py-2 text-sm text-blue-600 hover:text-blue-700">
+                      <Layout className="w-4 h-4 mr-2" /> Preview Layout
+                    </button>
+                  )}
+                </div>
+                <ChapterLayoutSelector selectedLayout={courseData.layout} onLayoutSelect={handleLayoutSelect} />
+              </div>
+            </TabsContent> */}
+
             <TabsContent value="chapters">
               <ChapterCreation chapters={courseData.chapters} onUpdate={handleChapterUpdate} />
             </TabsContent>
@@ -221,6 +255,10 @@ const CreateCourse = () => {
           </button>
         </div>
       </div>
+
+      {showLayoutPreview && (
+        <ChapterPreview layout={courseData.layout} onClose={() => setShowLayoutPreview(false)} />
+      )}
     </div>
   );
 };

@@ -20,6 +20,12 @@ const courseEngagementData = [
   { month: 'Apr', students: 175 },
   { month: 'May', students: 230 },
   { month: 'Jun', students: 280 },
+  { month: 'July', students: 175 },
+  { month: 'Aug', students: 85 },
+  { month: 'Sept', students: 40 },
+  { month: 'Oct', students: 55 },
+  { month: 'Nov', students: 200 },
+  { month: 'Dec', students: 80 },
 ];
 
 const COLORS = [
@@ -200,7 +206,7 @@ const InstructorDashboard = () => {
                   data={courseStatusData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
+                  innerRadius={80}
                   outerRadius={100}
                   paddingAngle={5}
                   dataKey="value"
@@ -219,15 +225,19 @@ const InstructorDashboard = () => {
 
         {/* Student Engagement Trend */}
         <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Student Engagement Trend</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Student Engagement Trend
+          </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={courseEngagementData}>
-                <CartesianGrid strokeDasharray="3 3" />
+              <BarChart data={courseEngagementData}
+              // barCategoryGap={20}
+              >
+                {/* <CartesianGrid strokeDasharray="3 3" /> */}
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="students" fill="#3B82F6" />
+                <Bar barSize={20} dataKey="students" fill="#3B82F6" radius={[10, 10, 10, 10]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

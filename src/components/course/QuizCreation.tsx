@@ -4,7 +4,7 @@ import { Plus, Trash2, CheckCircle } from 'lucide-react';
 const QuizCreation = ({ quizzes, onUpdate }) => {
   const formattedQuizzes = quizzes.map(quiz => ({
     ...quiz,
-    correctAnswers: quiz.correctAnswers || quiz.answer.map(ans => Number(ans)), // Convert answer to correctAnswers
+    correctAnswers: quiz.correctAnswers || quiz.answer.map(ans => String(ans)), // Convert answer to correctAnswers
   }));
 
   const [quizList, setQuizList] = useState(formattedQuizzes);

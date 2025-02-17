@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
-import { Plus, Trash2, Upload, Music, X, Edit } from "lucide-react";
+import { Plus, Trash2, Upload, Music, X, Edit, Layout } from "lucide-react";
 import { uploadImage } from "../../utils/api.js";
+import { ChapterLayoutSelector, ChapterPreview } from './ChapterLayouts';
 
 const ChapterCreation = ({ chapters, onUpdate }) => {
   const [newChapter, setNewChapter] = useState({
@@ -9,11 +10,14 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
     duration: "",
     image: "",
     audio: "",
+    layout: "", // New field for layout selection
   });
 
   const [editingChapterId, setEditingChapterId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
+  const [showLayoutSelector, setShowLayoutSelector] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const imageInputRef = useRef(null);
   const audioInputRef = useRef(null);
@@ -27,7 +31,8 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
   }));
 
   const handleAddOrUpdateChapter = () => {
-    if (newChapter.title && newChapter.content) {
+    console.log(newChapter, "new chapter")
+    if (newChapter.title && newChapter.content && newChapter.layout) {
       if (editingChapterId !== null) {
         onUpdate(
           normalizedChapters.map((chapter) =>
@@ -41,6 +46,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
                     imgUrl: newChapter.image || "",
                     audioUrl: newChapter.audio || "",
                   },
+                  layout: newChapter.layout? newChapter.layout: newChapter.template, // Update layout
                 }
               : chapter
           )
@@ -58,6 +64,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
               imgUrl: newChapter.image || "",
               audioUrl: newChapter.audio || "",
             },
+            layout: newChapter.layout? newChapter.layout: newChapter.template, // Add layout
           },
         ]);
       }
@@ -67,7 +74,10 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         duration: "",
         image: "",
         audio: "",
+        layout: "", // Reset layout
       });
+    } else {
+      alert('Please fill in all required fields and select a layout');
     }
   };
 
@@ -81,12 +91,14 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         duration: "",
         image: "",
         audio: "",
+        layout: "", // Reset layout
       });
     }
   };
 
   const handleEditChapter = (id) => {
     const chapterToEdit = normalizedChapters.find((chapter) => chapter.id === id);
+    console.log(chapterToEdit, "chapter to edit")
     if (chapterToEdit) {
       setEditingChapterId(id);
       setNewChapter({
@@ -95,6 +107,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         duration: chapterToEdit.duration || "",
         image: chapterToEdit.content?.imgUrl || "",
         audio: chapterToEdit.content?.audioUrl || "",
+        layout: chapterToEdit.template || "", // Set layout
       });
     }
   };
@@ -107,6 +120,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
       duration: "",
       image: "",
       audio: "",
+      layout: "", // Reset layout
     });
   };
 
@@ -131,7 +145,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
       }
     }
   };
-  
+
   const handleAudioChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -168,6 +182,14 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
     }));
   };
 
+  const handleLayoutSelect = (layoutName) => {
+    setNewChapter((prev) => ({
+      ...prev,
+      layout: layoutName,
+    }));
+    setShowLayoutSelector(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-50 dark:bg-dark-800 p-6 rounded-lg">
@@ -193,6 +215,33 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
             rows={4}
             className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
           />
+
+          {/* Layout Selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Chapter Layout
+            </label>
+            <div className="flex items-center space-x-4">
+              <button
+                type="button"
+                onClick={() => setShowLayoutSelector(true)}
+                className="px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 flex items-center space-x-2"
+              >
+                <Layout className="w-5 h-5" />
+                <span>{newChapter.layout ? 'Change Layout' : 'Select Layout'}</span>
+              </button>
+              {newChapter.layout && (
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(true)}
+                  className="px-4 py-2 text-blue-600 hover:text-blue-700"
+                >
+                  Preview Layout
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -306,7 +355,8 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
           <div className="flex space-x-4">
             <button
               onClick={handleAddOrUpdateChapter}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4"
+              disabled={!newChapter.title || !newChapter.content || !newChapter.layout}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {editingChapterId ? "Update Chapter" : "Add Chapter"}
             </button>
@@ -322,6 +372,7 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
         </div>
       </div>
 
+      {/* Chapter List */}
       <div className="space-y-4">
         {normalizedChapters.map((chapter) => (
           <div key={chapter.id} className="bg-white dark:bg-dark-800 p-4 rounded-lg border border-gray-200 dark:border-dark-700 flex items-center justify-between">
@@ -358,6 +409,35 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
           </div>
         ))}
       </div>
+
+      {/* Layout Selector Modal */}
+      {showLayoutSelector && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-800 rounded-xl p-6 w-full max-w-4xl">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Select Chapter Layout</h3>
+              <button
+                onClick={() => setShowLayoutSelector(false)}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <ChapterLayoutSelector
+              selectedLayout={newChapter.layout}
+              onLayoutSelect={handleLayoutSelect}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Layout Preview Modal */}
+      {showPreview && (
+        <ChapterPreview
+          layout={newChapter.layout}
+          onClose={() => setShowPreview(false)}
+        />
+      )}
     </div>
   );
 };

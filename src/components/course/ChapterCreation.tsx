@@ -216,31 +216,6 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
             className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
           />
 
-          {/* Layout Selection */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Chapter Layout
-            </label>
-            <div className="flex items-center space-x-4">
-              <button
-                type="button"
-                onClick={() => setShowLayoutSelector(true)}
-                className="px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 flex items-center space-x-2"
-              >
-                <Layout className="w-5 h-5" />
-                <span>{newChapter.layout ? 'Change Layout' : 'Select Layout'}</span>
-              </button>
-              {newChapter.layout && (
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(true)}
-                  className="px-4 py-2 text-blue-600 hover:text-blue-700"
-                >
-                  Preview Layout
-                </button>
-              )}
-            </div>
-          </div>
 
           {/* Image Upload */}
           <div>
@@ -343,6 +318,31 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
               </div>
             </div>
           </div>
+             {/* Layout Selection */}
+             <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Chapter Layout
+            </label>
+            <div className="flex items-center space-x-4">
+              <button
+                type="button"
+                onClick={() => setShowLayoutSelector(true)}
+                className="px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 flex items-center space-x-2"
+              >
+                <Layout className="w-5 h-5" />
+                <span>{newChapter.layout ? 'Change Layout' : 'Select Layout'}</span>
+              </button>
+              {newChapter.layout && (
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(true)}
+                  className="px-4 py-2 text-blue-600 hover:text-blue-700"
+                >
+                  Preview Layout
+                </button>
+              )}
+            </div>
+          </div>
           <input
             type="text"
             value={newChapter.duration}
@@ -426,6 +426,8 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
             <ChapterLayoutSelector
               selectedLayout={newChapter.layout}
               onLayoutSelect={handleLayoutSelect}
+              layoutImage={newChapter.image}
+              layoutAudio={newChapter.audio}
             />
           </div>
         </div>
@@ -435,6 +437,8 @@ const ChapterCreation = ({ chapters, onUpdate }) => {
       {showPreview && (
         <ChapterPreview
           layout={newChapter.layout}
+          layoutImage={newChapter.image}
+          layoutAudio={newChapter.audio}
           onClose={() => setShowPreview(false)}
         />
       )}

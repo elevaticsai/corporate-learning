@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   CheckCircle,
@@ -8,46 +8,70 @@ import {
   Search,
   Edit,
   Trash2,
-  ChevronDown
-} from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { loginIntsructor, getCourseStatusDistribution, getModuleCounts, getInstructorModules, deleteModule } from '../../utils/api.js';
+  ChevronDown,
+} from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import {
+  loginIntsructor,
+  getCourseStatusDistribution,
+  getModuleCounts,
+  getInstructorModules,
+  deleteModule,
+} from "../../utils/api.js";
 
 const courseEngagementData = [
-  { month: 'Jan', students: 65 },
-  { month: 'Feb', students: 85 },
-  { month: 'Mar', students: 120 },
-  { month: 'Apr', students: 175 },
-  { month: 'May', students: 230 },
-  { month: 'Jun', students: 280 },
-  { month: 'July', students: 175 },
-  { month: 'Aug', students: 85 },
-  { month: 'Sept', students: 40 },
-  { month: 'Oct', students: 55 },
-  { month: 'Nov', students: 200 },
-  { month: 'Dec', students: 80 },
+  { month: "Jan", students: 65 },
+  { month: "Feb", students: 85 },
+  { month: "Mar", students: 120 },
+  { month: "Apr", students: 175 },
+  { month: "May", students: 230 },
+  { month: "Jun", students: 280 },
+  { month: "July", students: 175 },
+  { month: "Aug", students: 85 },
+  { month: "Sept", students: 40 },
+  { month: "Oct", students: 55 },
+  { month: "Nov", students: 200 },
+  { month: "Dec", students: 80 },
 ];
 
 const COLORS = [
-  '#3B82F6', // Blue
-  '#10B981', // Green
-  '#F59E0B', // Amber
-  '#EF4444', // Red
-  '#8B5CF6', // Purple
-  '#EC4899', // Pink
-  '#14B8A6', // Teal
-  '#F43F5E', // Rose
-  '#A855F7', // Violet
-  '#22C55E', // Emerald
-  '#EAB308', // Yellow
-  '#C026D3', // Fuchsia
-  '#4ADE80', // Light Green
-  '#60A5FA', // Light Blue
-  '#FB923C', // Orange
+  "#3B82F6", // Blue
+  "#10B981", // Green
+  "#F59E0B", // Amber
+  "#EF4444", // Red
+  "#8B5CF6", // Purple
+  "#EC4899", // Pink
+  "#14B8A6", // Teal
+  "#F43F5E", // Rose
+  "#A855F7", // Violet
+  "#22C55E", // Emerald
+  "#EAB308", // Yellow
+  "#C026D3", // Fuchsia
+  "#4ADE80", // Light Green
+  "#60A5FA", // Light Blue
+  "#FB923C", // Orange
 ];
 
-
-const categories = ['All Categories', 'Compliance', 'Professional Ethics', 'Management', 'Technical', 'Soft Skills'];
+const categories = [
+  "All Categories",
+  "Compliance",
+  "Professional Ethics",
+  "Management",
+  "Technical",
+  "Soft Skills",
+];
 
 const MetricCard = ({ icon: Icon, title, value, trend }) => (
   <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
@@ -56,20 +80,28 @@ const MetricCard = ({ icon: Icon, title, value, trend }) => (
         <Icon className="w-6 h-6 text-blue-500 dark:text-blue-400" />
       </div>
       {trend && (
-        <span className={`text-sm ${trend.startsWith('+') ? 'text-green-500' : 'text-red-500'}`}>
+        <span
+          className={`text-sm ${
+            trend.startsWith("+") ? "text-green-500" : "text-red-500"
+          }`}
+        >
           {trend}
         </span>
       )}
     </div>
-    <h3 className="mt-4 text-sm font-medium text-gray-600 dark:text-gray-400">{title}</h3>
-    <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">{value}</p>
+    <h3 className="mt-4 text-sm font-medium text-gray-600 dark:text-gray-400">
+      {title}
+    </h3>
+    <p className="mt-2 text-2xl font-semibold text-gray-900 dark:text-white">
+      {value}
+    </p>
   </div>
 );
 
 const InstructorDashboard = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // State to store fetched data
@@ -97,11 +129,11 @@ const InstructorDashboard = () => {
   }, []);
 
   const handleCreateCourse = (courseId) => {
-    navigate('/courses/create');
+    navigate("/courses/create");
   };
 
   const handleEditCourse = (courseId) => {
-    navigate('/courses/edit/' + courseId);
+    navigate("/courses/edit/" + courseId);
   };
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -136,9 +168,12 @@ const InstructorDashboard = () => {
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-lg text-center w-80 animate-fadeIn">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Confirm Deletion</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Confirm Deletion
+            </h2>
             <p className="my-4 text-gray-600 dark:text-gray-400">
-              Are you sure you want to delete this course? This action cannot be undone.
+              Are you sure you want to delete this course? This action cannot be
+              undone.
             </p>
             <div className="flex justify-center gap-3">
               <button
@@ -161,8 +196,12 @@ const InstructorDashboard = () => {
       {/* Header with Welcome Message and Create Button */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Welcome, Instructor</h1>
-          <p className="text-gray-500 dark:text-gray-400">Manage your courses and track their performance</p>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Welcome, Instructor
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Manage your courses and track their performance
+          </p>
         </div>
         <button
           onClick={handleCreateCourse}
@@ -198,7 +237,9 @@ const InstructorDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Course Status Distribution */}
         <div className="bg-white dark:bg-dark-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Course Status Distribution</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Course Status Distribution
+          </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -213,7 +254,10 @@ const InstructorDashboard = () => {
                   fill="#8884d8"
                 >
                   {courseStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip />
@@ -230,14 +274,19 @@ const InstructorDashboard = () => {
           </h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={courseEngagementData}
-              // barCategoryGap={20}
+              <BarChart
+                data={courseEngagementData}
+                // barCategoryGap={20}
               >
-                {/* <CartesianGrid strokeDasharray="3 3" /> */}
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip />
-                <Bar barSize={20} dataKey="students" fill="#3B82F6" radius={[10, 10, 10, 10]} />
+                <Bar
+                  barSize={20}
+                  dataKey="students"
+                  fill="#3B82F6"
+                  radius={[10, 10, 10, 10]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -248,7 +297,9 @@ const InstructorDashboard = () => {
       <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700 overflow-hidden">
         <div className="p-6 border-b border-gray-100 dark:border-dark-700">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">Your Courses</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+              Your Courses
+            </h3>
             <div className="flex flex-wrap gap-4">
               {/* Search */}
               <div className="relative">
@@ -269,8 +320,10 @@ const InstructorDashboard = () => {
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
                   ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 pointer-events-none" />
@@ -280,18 +333,40 @@ const InstructorDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-          {coursesData.map(course => (
-            <div key={course._id} className="bg-white dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700 overflow-hidden">
-              <img src={course.imgUrl} alt={course.title} className="w-full h-48 object-cover" />
+          {coursesData.map((course) => (
+            <div
+              key={course._id}
+              className="bg-white dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700 overflow-hidden"
+            >
+              <img
+                src={course.imgUrl}
+                alt={course.title}
+                className="w-full h-48 object-cover"
+              />
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">{course.category}</span>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${course.status === 'published' ? 'bg-green-100 text-green-800' : course.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {course.category}
+                  </span>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      course.status === "published"
+                        ? "bg-green-100 text-green-800"
+                        : course.status === "rejected"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
+                  >
                     {course.status}
                   </span>
                 </div>
-                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{course.title}</h4>
-                <span className="text-sm text-gray-500 dark:text-gray-400">Last updated: {new Date(course.updatedAt).toLocaleDateString()}</span>
+                <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  {course.title}
+                </h4>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  Last updated:{" "}
+                  {new Date(course.updatedAt).toLocaleDateString()}
+                </span>
                 <div className="flex gap-2 mt-2">
                   <button
                     onClick={() => handleEditCourse(course._id)}
@@ -305,7 +380,6 @@ const InstructorDashboard = () => {
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-
                 </div>
               </div>
             </div>

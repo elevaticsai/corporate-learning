@@ -86,7 +86,7 @@ const AdminLayout = () => {
   const userRole = user?.role || "GUEST";
 
   return (
-    <div className="flex bg-gray-50 dark:bg-dark-900 min-h-screen">
+    <div className="flex bg-gray-60 dark:bg-dark-900 min-h-screen">
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 transform transition-transform duration-200 ease-in-out ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"

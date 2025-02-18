@@ -1,21 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
-
-import { useDispatch, useSelector } from "react-redux";
+import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Confetti from "react-confetti";
+import TemplateRenderer from "./Layout";
 
 import {
   ChevronLeft,
   ChevronRight as ChevronNextIcon,
-  Maximize2,
   PlayCircle,
-  Pause,
   CheckCircle,
   Clock,
-  Volume2,
-  VolumeX,
   XCircle,
 } from "lucide-react";
 import axios from "axios";
@@ -41,21 +37,15 @@ interface Chapter {
   content: ChapterContent;
   isCompleted: true | false;
   duration: string;
+  template: string;
 }
-
-// Import JSON animations
-import successAnimation from "/src/assets/success.json";
-import failAnimation from "/src/assets/fail.json";
 
 const TrainingDetails = () => {
   const navigate = useNavigate();
   const token = useSelector((state: any) => state.auth.token);
-  const dispatch = useDispatch();
   const { id } = useParams();
-
   const [activeTab, setActiveTab] = useState("overview");
   const [questionPanel, setQuestionPanel] = useState("overview");
-
   const [trainingDetails, setTrainingDetails] = useState<any>(null);
   console.log(trainingDetails);
 
@@ -82,36 +72,6 @@ const TrainingDetails = () => {
 
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const isLastQuestion = nextQuestionId === null;
-
-  // Media control states
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const toggleAudio = () => {
-    if (!audioRef.current) return;
-
-    if (!isPlaying) {
-      // Ensure audio is unmuted and can play
-      audioRef.current.muted = false;
-      audioRef.current.play().catch((error) => {
-        console.error("Error playing audio:", error);
-      });
-    } else {
-      audioRef.current.pause();
-    }
-
-    setIsPlaying(!isPlaying);
-  };
-
-  const toggleMute = () => {
-    if (!audioRef.current) return;
-
-    audioRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
 
   const closePopup = () => {
     setIsPopupVisible(false);
@@ -463,19 +423,9 @@ const TrainingDetails = () => {
         <>
           {questionPanel === "content" ? (
             <>
-              <div className="flex h-[calc(100vh-12rem)]">
+              <div className="">
                 {selectedChapter ? (
-                  <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-l-xl shadow-sm">
-                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
-                      {selectedChapter.title}
-                    </h2>
-                    <div
-                      className="prose prose-blue max-w-none dark:prose-dark"
-                      dangerouslySetInnerHTML={{
-                        __html: selectedChapter.description,
-                      }}
-                    ></div>
-                  </div>
+                  <TemplateRenderer selectedChapter={selectedChapter} />
                 ) : (
                   <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-xl shadow-sm">
                     <p className="text-gray-500 dark:text-gray-300">
@@ -484,36 +434,8 @@ const TrainingDetails = () => {
                   </div>
                 )}
 
-                <div className="w-1/2 flex flex-col">
-                  <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center">
-                    <img
-                      src={selectedChapter?.content?.imgUrl}
-                      alt={selectedChapter?.title || "Media"}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                      <div className="flex items-center justify-between text-white">
-                        {selectedChapter?.content?.audioUrl && (
-                          <div className="absolute bottom-4 left-4 flex items-center space-x-4">
-                            <audio
-                              ref={audioRef}
-                              src={selectedChapter?.content?.audioUrl || ""}
-                              onCanPlay={() => console.log("Audio is ready!")}
-                            />
-                            <button onClick={toggleAudio}>
-                              {isPlaying ? (
-                                <Pause className="w-6 h-6 text-white" />
-                              ) : (
-                                <PlayCircle className="w-6 h-6 text-white" />
-                              )}
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-gray-50 dark:bg-dark-700 border-t border-gray-100 dark:border-dark-700">
+                <div className=" flex flex-col rounded-r-xl">
+                  <div className="p-4 bg-gray-50 dark:bg-dark-700 border-t border-gray-100 dark:border-dark-700 overflow-hidden rounded-br-xl rounded-bl-xl">
                     <div className="flex justify-between items-center">
                       <button
                         onClick={() =>

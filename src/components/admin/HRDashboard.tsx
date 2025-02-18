@@ -393,6 +393,7 @@ const HRDashboard = () => {
               <BarChart data={trainingEngagementData}>
                 <XAxis
                   dataKey="name"
+                  axisLine={false}
                   tickLine={false}
                   fontSize={12}
                   dy={10}
@@ -400,6 +401,7 @@ const HRDashboard = () => {
                 />
                 <YAxis
                   tickLine={false}
+                  axisLine={false}
                   stroke="#94a3b8"
                   fontSize={12}
                   dx={-10}

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Pause, Volume2 } from "lucide-react";
+import { Pause, Volume2, PlayCircle } from "lucide-react";
 
 interface ChapterContent {
   imgUrl?: string;
@@ -277,10 +277,51 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
 
     default:
       return (
-        <div className="w-1/2 flex flex-col rounded-r-xl">
-          <p className="text-gray-500 dark:text-gray-300 p-8">
-            Template not found
-          </p>
+        <div className="w-full flex flex-col lg:flex-row bg-white dark:bg-dark-800 rounded-t-xl shadow-sm">
+          {/* Left Section: Chapter Details */}
+          <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">
+              {selectedChapter?.title || "Chapter Title"}
+            </h2>
+            <div
+              className="prose prose-blue max-w-none dark:prose-dark"
+              dangerouslySetInnerHTML={{
+                __html:
+                  selectedChapter?.description ||
+                  "<p>No content available.</p>",
+              }}
+            ></div>
+          </div>
+
+          {/* Right Section: Image & Media */}
+          <div className="w-1/2 flex flex-col">
+            <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center">
+              <img
+                src={selectedChapter?.content?.imgUrl || "/placeholder.jpg"}
+                alt={selectedChapter?.title || "Media"}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                <div className="flex items-center justify-between text-white">
+                  {selectedChapter?.content?.audioUrl && (
+                    <div className="absolute bottom-4 left-4 flex items-center space-x-4">
+                      <audio
+                        ref={audioRef}
+                        src={selectedChapter?.content?.audioUrl || ""}
+                      />
+                      <button onClick={toggleAudio}>
+                        {isPlaying ? (
+                          <Pause className="w-6 h-6 text-white" />
+                        ) : (
+                          <PlayCircle className="w-6 h-6 text-white" />
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
   }

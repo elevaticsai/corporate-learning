@@ -36,18 +36,14 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
     onPlayPause,
   }) => {
     return (
-      <div className="absolute top-4 right-4 flex items-center space-x-2 bg-white/90 dark:bg-dark-700 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-        <button
-          onClick={onPlayPause}
-          className="text-blue-600 hover:text-blue-700 transition-colors"
-        >
+      <div className="absolute top-11 right-8 flex items-center space-x-2 bg-white/90 dark:bg-dark-700 backdrop-blur-sm rounded-lg px-3  shadow-lg">
+        <button onClick={onPlayPause}>
           {isPlaying ? (
             <Pause className="w-5 h-5" />
           ) : (
             <Volume2 className="w-5 h-5" />
           )}
         </button>
-        <span className="text-sm text-blue-600 font-medium">Audio</span>
       </div>
     );
   };
@@ -244,17 +240,17 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
     case "Centered Header with Image":
       return (
         <div className="min-h-[600px] relative overflow-hidden rounded-t-xl">
-          <div className="text-center p-8 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden rounded-t-xl">
+          <div className="text-center p-8 text-gray-900 dark:text-white overflow-hidden rounded-t-xl">
             <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
               {selectedChapter?.title}
             </h1>
           </div>
           {selectedChapter?.content?.imgUrl && (
-            <div className="relative h-96">
+            <div className="relative h-[500px] flex items-center justify-center">
               <img
                 src={selectedChapter?.content?.imgUrl}
                 alt={selectedChapter?.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             </div>
           )}

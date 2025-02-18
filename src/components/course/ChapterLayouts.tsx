@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Layout, Eye, Volume2, Play, Image as ImageIcon, Pause, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 export type ChapterLayout = {
@@ -50,11 +50,15 @@ export const chapterLayouts: ChapterLayout[] = [
 interface ChapterLayoutSelectorProps {
   selectedLayout: string;
   onLayoutSelect: (layoutId: string) => void;
+  layoutImage: string;
+  layoutAudio: string;
 }
 
 export const ChapterLayoutSelector: React.FC<ChapterLayoutSelectorProps> = ({
   selectedLayout,
-  onLayoutSelect
+  onLayoutSelect,
+  layoutImage,
+  layoutAudio
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
@@ -215,8 +219,10 @@ export const ChapterLayoutSelector: React.FC<ChapterLayoutSelectorProps> = ({
                 layout={previewLayout}
                 title="Sample Chapter Title"
                 content="This is a preview of how your content will look with this layout. The actual content will be replaced with your chapter content."
-                image={chapterLayouts.find(l => l.id === previewLayout)?.preview}
-                audio={true}
+                // image={chapterLayouts.find(l => l.id === previewLayout)?.preview}
+                // audio={true}
+                image={layoutImage}
+                audio={layoutAudio}
               />
             </div>
           </div>
@@ -266,10 +272,25 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
   video,
   audio
 }) => {
+
+    const audioRef = useRef(null);
+  
+  console.log(audio, "audio link")
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying);
+  };
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
   };
 
   const renderLayout = () => {
@@ -291,8 +312,9 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{title}</h1>
               <div className="prose prose-lg dark:prose-dark">{content}</div>
             </div>
+            <audio ref={audioRef} src={audio} />
             {audio && (
-              <AudioControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
+              <AudioControls isPlaying={isPlaying} onPlayPause={togglePlay} />
             )}
           </div>
         );
@@ -314,8 +336,9 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                 </div>
               )}
             </div>
+            <audio ref={audioRef} src={audio} />
             {audio && (
-              <AudioControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
+              <AudioControls isPlaying={isPlaying} onPlayPause={togglePlay} />
             )}
           </div>
         );
@@ -337,8 +360,9 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                 <div className="prose prose-lg dark:prose-dark">{content}</div>
               </div>
             </div>
+            <audio ref={audioRef} src={audio} />
             {audio && (
-              <AudioControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
+              <AudioControls isPlaying={isPlaying} onPlayPause={togglePlay} />
             )}
           </div>
         );
@@ -362,8 +386,9 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
             <div className="max-w-4xl mx-auto p-8">
               <div className="prose prose-lg dark:prose-dark">{content}</div>
             </div>
+            <audio ref={audioRef} src={audio} />
             {audio && (
-              <AudioControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
+              <AudioControls isPlaying={isPlaying} onPlayPause={togglePlay} />
             )}
           </div>
         );
@@ -385,8 +410,9 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">{title}</h1>
               <div className="prose prose-lg dark:prose-dark">{content}</div>
             </div>
+            <audio ref={audioRef} src={audio} />
             {audio && (
-              <AudioControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
+              <AudioControls isPlaying={isPlaying} onPlayPause={togglePlay} />
             )}
           </div>
         );
@@ -408,8 +434,9 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                 )}
               </div>
             )}
+            <audio ref={audioRef} src={audio} />
             {audio && (
-              <AudioControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
+              <AudioControls isPlaying={isPlaying} onPlayPause={togglePlay} />
             )}
           </div>
         );
@@ -431,7 +458,8 @@ interface ChapterPreviewProps {
   onClose: () => void;
 }
 
-export const ChapterPreview: React.FC<ChapterPreviewProps> = ({ layout, onClose }) => {
+export const ChapterPreview: React.FC<ChapterPreviewProps> = ({ layout, onClose, layoutImage, layoutAudio }) => {
+  console.log(layoutImage, "layout image")
   const selectedLayout = chapterLayouts.find(l => l.name === layout);
 
   return (
@@ -456,8 +484,9 @@ export const ChapterPreview: React.FC<ChapterPreviewProps> = ({ layout, onClose 
             layout={selectedLayout?.id}
             title="Sample Chapter Title"
             content="This is a preview of how your content will look with this layout. The actual content will be replaced with your chapter content."
-            image={selectedLayout?.preview}
-            audio={true}
+            // image={selectedLayout?.preview}
+            image={layoutImage}
+            audio={layoutAudio}
           />
         </div>
       </div>

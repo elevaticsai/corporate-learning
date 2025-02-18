@@ -220,6 +220,12 @@ const CreateCourse = () => {
         </Tabs>
 
         <div className="flex justify-end px-6 py-4 border-t border-gray-100 dark:border-dark-700">
+        <button
+    onClick={() => navigate("/instructor")}
+    className="px-6 py-2 mr-4 rounded-lg text-gray-700 bg-gray-200 hover:bg-gray-300 transition focus:ring-4 focus:ring-gray-300"
+  >
+    Cancel
+  </button>
           <button
             onClick={handleSaveCourse}
             disabled={isLoading}

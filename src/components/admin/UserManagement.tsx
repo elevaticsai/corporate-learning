@@ -309,12 +309,12 @@ const UserManagement = () => {
         theme="light"
       />
 
-      <h1 className="text-2xl pl-5 pt-10 font-semibold text-gray-900 dark:text-white">
-        User Management
+      <h1 className="text-2xl dark:ml-0 ml-5 pt-10 font-semibold text-gray-900 dark:text-white">
+        Employee Training Management
       </h1>
 
       {/* Main Container for horizontal layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 mt-5 md:grid-cols-2 gap-6">
         {/* Add Employee Form */}
         <div className="bg-white mt-5 p-6 rounded-lg shadow-sm dark:bg-dark-800 dark:border-dark-700">
           <h2 className="text-xl font-semibold mb-4">Add New Employee</h2>
@@ -362,14 +362,14 @@ const UserManagement = () => {
               ref={fileInputRef}
               className="border rounded-md p-2 dark:border-dark-700 dark:bg-dark-700"
             />
-            <button
-              onClick={handleBulkUpload}
-              disabled={!csvFile || loading}
-              className="bg-green-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-green-700"
-            >
-              <Upload size={20} /> Upload CSV
-            </button>
           </div>
+          <button
+            onClick={handleBulkUpload}
+            disabled={!csvFile || loading}
+            className="bg-blue-600 mt-4 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700"
+          >
+            <Upload size={20} /> Upload CSV
+          </button>
         </div>
       </div>
 

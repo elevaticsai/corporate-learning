@@ -316,7 +316,7 @@ const TrainingDetails = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 dark:bg-dark-900">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+      <nav className="absolute top-5 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
         <Link
           to="/employee"
           className="hover:text-gray-700 dark:hover:text-white"

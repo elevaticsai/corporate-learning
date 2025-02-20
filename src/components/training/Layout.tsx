@@ -291,7 +291,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
 
           {/* Right Section: Image & Media */}
           <div className="w-1/2 flex flex-col">
-            <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center rounded-t-xl">
+            <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center rounded-tr-xl">
               <img
                 src={selectedChapter?.content?.imgUrl || "/placeholder.jpg"}
                 alt={selectedChapter?.title || "Media"}

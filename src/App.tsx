@@ -1,4 +1,6 @@
 import { Provider } from "react-redux";
+import { useAuthStore } from "./store/authStore";
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -11,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Dashboard from "./components/admin/Dashboard";
 import HRDashboard from "./components/admin/HRDashboard";
 import InstructorDashboard from "./components/admin/InstructorDashboard";
-import EmployeeDashboard from "./components/admin/EmployeeDashboard";
+import EmployeeDashboard from "./components/employee/EmployeeDashboard";
 import TrainingDetails from "./components/training/TrainingDetails";
 import OnboardingForm from "./components/OnboardingForm";
 import LoginPage from "./components/auth/LoginPage";
@@ -22,8 +24,19 @@ import ResetPassword from "./components/auth/ResetPassword";
 import store from "./redux/store";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Settings from "./components/admin/Setting";
+import ProtectedRoute from "./store/ProtectedRoute";
+import CompletedCourses from "./components/employee/CompletedCourses";
+import PendingCourses from "./components/employee/PendingCourses";
 
 function App() {
+  const loadUserFromStorage = useAuthStore(
+    (state) => state.loadUserFromStorage
+  );
+
+  useEffect(() => {
+    loadUserFromStorage(); // Load auth state on app mount
+  }, []);
+
   return (
     <Provider store={store}>
       <Router>
@@ -43,46 +56,67 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/signup" element={<OnboardingForm />} />
-          
-          {/* Admin routes with ThemeProvider */}
-          <Route
-            path="/admin"
-            element={
-              <ThemeProvider>
-                <AdminLayout />
-              </ThemeProvider>
-            }
-          >
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="hr" element={<HRDashboard />} />
-            <Route path="hr/user-management" element={<UserManagement />} />
-            <Route path="employee" element={<EmployeeDashboard />} />
-            <Route path="instructor" element={<InstructorDashboard />} />
-            <Route path="training/:id" element={<TrainingDetails />} />
-            <Route path="courses/create" element={<CreateCourse />} />
-            <Route path="courses/edit/:courseId" element={<CreateCourse />} />
-            <Route path="course-review/:id" element={<CourseReview />} />
-          </Route>
 
-          {/* Other authenticated routes with ThemeProvider */}
-          <Route
-            path="/"
-            element={
-              <ThemeProvider>
-                <AdminLayout />
-              </ThemeProvider>
-            }
-          >
-            <Route path="hr" element={<HRDashboard />} />
-            <Route path="hr/user-management" element={<UserManagement />} />
-            <Route path="employee" element={<EmployeeDashboard />} />
-            <Route path="instructor" element={<InstructorDashboard />} />
-            <Route path="training/:id" element={<TrainingDetails />} />
-            <Route path="courses/create" element={<CreateCourse />} />
-            <Route path="courses/edit/:courseId" element={<CreateCourse />} />
-            <Route path="course-review/:id" element={<CourseReview />} />
+          <Route element={<ProtectedRoute />}>
+            {/* Admin routes with ThemeProvider */}
+            <Route
+              path="/admin"
+              element={
+                <ThemeProvider>
+                  <AdminLayout />
+                </ThemeProvider>
+              }
+            >
+              <Route
+                index
+                element={<Navigate to="/admin/dashboard" replace />}
+              />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="hr" element={<HRDashboard />} />
+              <Route path="hr/user-management" element={<UserManagement />} />
+              <Route path="employee" element={<EmployeeDashboard />} />
+              <Route
+                path="employee/completed-courses"
+                element={<CompletedCourses />}
+              />
+              <Route
+                path="employee/pending-courses"
+                element={<PendingCourses />}
+              />
+              <Route path="instructor" element={<InstructorDashboard />} />
+              <Route path="training/:id" element={<TrainingDetails />} />
+              <Route path="courses/create" element={<CreateCourse />} />
+              <Route path="courses/edit/:courseId" element={<CreateCourse />} />
+              <Route path="course-review/:id" element={<CourseReview />} />
+            </Route>
+
+            {/* Other authenticated routes with ThemeProvider */}
+            <Route
+              path="/"
+              element={
+                <ThemeProvider>
+                  <AdminLayout />
+                </ThemeProvider>
+              }
+            >
+              <Route path="hr" element={<HRDashboard />} />
+              <Route path="hr/user-management" element={<UserManagement />} />
+              <Route path="employee" element={<EmployeeDashboard />} />
+              <Route
+                path="employee/completed-courses"
+                element={<CompletedCourses />}
+              />
+              <Route
+                path="employee/pending-courses"
+                element={<PendingCourses />}
+              />
+              <Route path="instructor" element={<InstructorDashboard />} />
+              <Route path="training/:id" element={<TrainingDetails />} />
+              <Route path="courses/create" element={<CreateCourse />} />
+              <Route path="courses/edit/:courseId" element={<CreateCourse />} />
+              <Route path="course-review/:id" element={<CourseReview />} />
+            </Route>
           </Route>
         </Routes>
       </Router>

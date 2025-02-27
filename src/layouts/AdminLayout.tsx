@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useSelector } from "react-redux";
 import {
@@ -15,22 +15,25 @@ import {
   Sun,
   UserPlus,
   CreditCard,
+  CheckCircle,
+  Clock,
+  Home,
 } from "lucide-react";
 
 import { useTheme } from "../contexts/ThemeContext";
 
 const menuItems = [
-  { 
-    title: "Dashboard", 
-    icon: LayoutDashboard, 
-    path: "/admin/dashboard", 
+  {
+    title: "Dashboard",
+    icon: LayoutDashboard,
+    path: "/admin/dashboard",
     roles: ["SUPER_ADMIN"],
   },
-  { 
-    title: "Dashboard", 
-    icon: GraduationCap, 
-    path: "/hr", 
-    roles: ["MANAGER"], 
+  {
+    title: "Dashboard",
+    icon: GraduationCap,
+    path: "/hr",
+    roles: ["MANAGER"],
   },
   {
     title: "Manage Users",
@@ -52,8 +55,20 @@ const menuItems = [
   },
   {
     title: "Home",
-    icon: School,
+    icon: Home,
     path: "/employee",
+    roles: ["EMPLOYEE"],
+  },
+  {
+    title: "Completed Courses",
+    icon: CheckCircle,
+    path: "/employee/completed-courses",
+    roles: ["EMPLOYEE"],
+  },
+  {
+    title: "Pending courses",
+    icon: Clock,
+    path: "/employee/pending-courses",
     roles: ["EMPLOYEE"],
   },
   {
@@ -74,25 +89,16 @@ const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const navigate = useNavigate();
-  const location = useLocation();
   const signout = useAuthStore((state) => state.signout);
   const { theme, toggleTheme } = useTheme();
-  const user = useSelector((state: any) => state.auth.user);
-  const userRole = user?.role || "GUEST";
-
-  // Ensure user cannot access pages outside their role
-  useEffect(() => {
-    const allowedPaths = menuItems.filter((item) => item.roles.includes(userRole)).map((item) => item.path);
-    if (!allowedPaths.includes(location.pathname)) {
-      navigate(allowedPaths[0] || "/"); // Redirect to first available page or home
-    }
-  }, [userRole, location.pathname, navigate]);
 
   const handleLogout = () => {
     signout();
     setUserMenuOpen(false);
     navigate("/");
   };
+  const user = useSelector((state: any) => state.auth.user);
+  const userRole = user?.role || "GUEST";
 
   return (
     <div className="flex bg-gray-60 dark:bg-dark-900 min-h-screen">
@@ -104,11 +110,11 @@ const AdminLayout = () => {
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-dark-700">
           <span className="text-xl font-semibold text-gray-800 dark:text-white">
             Elevatics360
-            </span>
-          <button 
-            onClick={() => setSidebarOpen(false)} 
+          </span>
+          <button
+            onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            >
+          >
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -117,25 +123,25 @@ const AdminLayout = () => {
           {menuItems
             .filter((item) => item.roles.includes(userRole))
             .map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                end
-                className={({ isActive }) => {
-                  return `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                    isActive
-                      ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700"
-                  }`;
-                }}
-              >
-                <Icon className="w-5 h-5 mr-3" />
-                {item.title}
-              </NavLink>
-            );
-          })}
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  end
+                  className={({ isActive }) => {
+                    return `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
+                      isActive
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700"
+                    }`;
+                  }}
+                >
+                  <Icon className="w-5 h-5 mr-3" />
+                  {item.title}
+                </NavLink>
+              );
+            })}
         </nav>
 
         <div className="border-t border-gray-200 dark:border-dark-700 p-4">
@@ -146,23 +152,23 @@ const AdminLayout = () => {
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {user?.username || "Guest User"}
-                </p>
+              </p>
             </div>
-            <button 
-              onClick={toggleTheme} 
+            <button
+              onClick={toggleTheme}
               className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg"
-              >
-               {theme === "dark" ? (
+            >
+              {theme === "dark" ? (
                 <Sun className="w-5 h-5" />
               ) : (
-                  <Moon className="w-5 h-5" />
-                  )}
+                <Moon className="w-5 h-5" />
+              )}
             </button>
           </div>
-          <button 
-            onClick={handleLogout} 
+          <button
+            onClick={handleLogout}
             className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg"
-            >
+          >
             <LogOut className="w-4 h-4 mr-3" />
             Sign out
           </button>

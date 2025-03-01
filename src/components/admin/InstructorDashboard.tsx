@@ -9,6 +9,8 @@ import {
   Edit,
   Trash2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   BarChart,
@@ -103,11 +105,68 @@ const InstructorDashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const coursesPerPage = 6;
 
   // State to store fetched data
   const [courseStatusData, setCourseStatusData] = useState([]);
   const [moduleCounts, setModuleCounts] = useState(null);
   const [coursesData, setCoursesData] = useState([]);
+
+  const indexOfLastCourse = currentPage * coursesPerPage;
+  const indexOfFirstCourse = indexOfLastCourse - coursesPerPage;
+  const currentCourses = coursesData.slice(
+    indexOfFirstCourse,
+    indexOfLastCourse
+  );
+
+  const Pagination = () => {
+    const pageNumbers = Math.ceil(coursesData.length / coursesPerPage);
+
+    return (
+      <div className="flex flex-col items-center justify-center mt-6 pb-6">
+        <div className="flex justify-center gap-2">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-1 disabled:opacity-50 flex items-center"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          {Array.from({ length: pageNumbers }, (_, i) => i + 1).map(
+            (number) => (
+              <button
+                key={number}
+                onClick={() => setCurrentPage(number)}
+                className={`px-3 py-1 rounded-full border ${
+                  currentPage === number
+                    ? "bg-blue-500 text-white"
+                    : "border-gray-200 dark:border-dark-700"
+                }`}
+              >
+                {number}
+              </button>
+            )
+          )}
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, pageNumbers))
+            }
+            disabled={currentPage === pageNumbers}
+            className="px-3 py-1 rounded-lg disabled:opacity-50 flex items-center"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          {`${indexOfFirstCourse + 1}-${Math.min(
+            indexOfLastCourse,
+            coursesData.length
+          )} of ${coursesData.length} items`}
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -133,7 +192,11 @@ const InstructorDashboard = () => {
   };
 
   const handleEditCourse = (courseId) => {
-    navigate("/courses/edit/" + courseId);
+    if (!courseId) {
+      console.error("No course ID provided");
+      return;
+    }
+    navigate(`/courses/edit/${courseId}`);
   };
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -309,7 +372,10 @@ const InstructorDashboard = () => {
                   placeholder="Search courses..."
                   className="pl-10 pr-4 py-2 border border-gray-200 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white placeholder-gray-400"
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
 
@@ -333,7 +399,7 @@ const InstructorDashboard = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-          {coursesData.map((course) => (
+          {currentCourses.map((course) => (
             <div
               key={course._id}
               className="bg-white dark:bg-dark-800 rounded-lg border border-gray-200 dark:border-dark-700 overflow-hidden"
@@ -384,6 +450,9 @@ const InstructorDashboard = () => {
               </div>
             </div>
           ))}
+        </div>
+        <div className="flex justify-center items-center pb-6">
+          <Pagination />
         </div>
       </div>
     </div>

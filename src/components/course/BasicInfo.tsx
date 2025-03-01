@@ -1,40 +1,67 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Upload, X, Music } from 'lucide-react';
-import { uploadImage } from '../../utils/api.js';
+import React, { useState, useRef, useEffect } from "react";
+import { Upload, X, Pen, Sparkles, SpellCheck, BookOpen } from "lucide-react";
+//@ts-ignore
+import { uploadImage } from "../../utils/api.js";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
+import { LLMClient } from "../../services/llm-api-client.js";
+import { getWritingPrompt, WritingPromptKey } from "../../utils/prompts.js";
+import { marked } from "marked";
+import { MdContentCopy, MdOutlineReplay } from "react-icons/md";
 
 const categories = [
-  'Development',
-  'Business',
-  'Design',
-  'Marketing',
-  'IT & Software',
-  'Personal Development',
-  'Photography',
-  'Music'
+  "Development",
+  "Business",
+  "Design",
+  "Marketing",
+  "IT & Software",
+  "Personal Development",
+  "Photography",
+  "Music",
 ];
 
-const BasicInfo = ({ data, onUpdate }) => {
-  console.log(data, "basic infor data");
-  const [imagePreview, setImagePreview] = useState(data.image || '');
-  const [audioFile, setAudioFile] = useState(data.audio || null);
+const BasicInfo = ({ data, onUpdate }: any) => {
+  const [imagePreview, setImagePreview] = useState(data.image || "");
   const [isUploading, setIsUploading] = useState(false);
   const imageInputRef = useRef(null);
-  const audioInputRef = useRef(null);
+
+  const quillRef = useRef<ReactQuill & { getEditor: () => any }>(null);
+
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    top: number;
+    left: number;
+  }>({ visible: false, top: 0, left: 0 });
+  const [selectedText, setSelectedText] = useState<string>("");
+  //@ts-ignore
+  const [selectedRange, setSelectedRange] = useState<any>(null);
+  const [modal, setModal] = useState<{
+    visible: boolean;
+    content: string;
+    top: number;
+    left: number;
+  }>({ visible: false, content: "", top: 0, left: 0 });
+  const [lastAction, setLastAction] = useState<WritingPromptKey | null>(null);
 
   useEffect(() => {
-    setImagePreview(data.image || '');
+    setImagePreview(data.image || "");
   }, [data.image]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    onUpdate({ [name]: value });
+  const handleChange = (e: any) => {
+    if (e.target) {
+      const { name, value } = e.target;
+      onUpdate({ [name]: value });
+    } else {
+      const { name, value } = e;
+      onUpdate({ [name]: value });
+    }
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageChange = async (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB');
+        alert("Image size should be less than 5MB");
         return;
       }
       setIsUploading(true);
@@ -43,55 +70,218 @@ const BasicInfo = ({ data, onUpdate }) => {
         setImagePreview(uploadResponse.fileUrl);
         data.image = uploadResponse.fileUrl;
       } catch (error) {
-        alert('Image upload failed');
+        alert("Image upload failed");
       } finally {
         setIsUploading(false);
       }
     }
   };
-  
-  // const handleAudioChange = (e) => {
-  //   const file = e.target.files?.[0];
-  //   if (file) {
-  //     if (file.size > 10 * 1024 * 1024) { // 10MB limit
-  //       alert('Audio file size should be less than 10MB');
-  //       return;
-  //     }
-
-  //     const reader = new FileReader();
-      
-  //     reader.onloadend = () => {
-  //       setAudioFile(file);
-  //       onUpdate({ audio: file });
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
 
   const handleRemoveImage = () => {
-    setImagePreview('');
-    onUpdate({ image: '' });
+    setImagePreview("");
+    onUpdate({ image: "" });
   };
 
-  const handleRemoveAudio = () => {
-    setAudioFile(null);
-    onUpdate({ audio: null });
+  const handleContextMenu = (event: React.MouseEvent<HTMLDivElement>) => {
+    event.preventDefault();
+
+    const selection = window.getSelection();
+    if (selection && selection.toString().trim() !== "") {
+      const selectedContent = selection.toString().trim();
+      setSelectedText(selectedContent);
+
+      // Get the editor's container
+      const editorContainer = event.currentTarget;
+      const editorRect = editorContainer.getBoundingClientRect();
+
+      // Calculate the position relative to the editor's container
+      const top = event.clientY - editorRect.top + editorContainer.scrollTop;
+      const left = event.clientX - editorRect.left + editorContainer.scrollLeft;
+
+      setContextMenu({
+        visible: true,
+        top,
+        left,
+      });
+
+      // Store the Quill selection range
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        const range = quill.getSelection();
+        if (range && range.length > 0) {
+          setSelectedRange(range);
+        }
+      }
+    }
   };
 
-  const handleOutcomesChange = (e) => {
-    const outcomes = e.target.value.split('\n').filter(Boolean);
-    onUpdate({ learningOutcomes: outcomes });
+  const handleActionSelect = async (action: WritingPromptKey) => {
+    setContextMenu({ ...contextMenu, visible: false });
+    if (!selectedText) return;
+    setLastAction(action);
+    try {
+      await handleOptionClick(action);
+    } catch (error) {
+      console.error("Error processing text:", error);
+    }
   };
 
-  const handlePrerequisitesChange = (e) => {
-    const prerequisites = e.target.value.split('\n').filter(Boolean);
-    onUpdate({ prerequisites });
+  const removeMarkdownDelimiters = (text: string) => {
+    // Remove ```markdown from the beginning
+    text = text.replace(/^```markdown\s*/, "");
+    // Remove ``` from the end
+    text = text.replace(/```$/, "");
+    return text.trim();
   };
+
+  const formatResponse = async (text: string): Promise<string> => {
+    // const cleanedText: string = cleanMarkdownOutput(text);
+    const planeText = removeMarkdownDelimiters(text);
+    const markedText: string = await marked.parse(planeText);
+    // console.log("text is => ", markedText);
+    return markedText;
+    // return DOMPurify.sanitize(markedText);
+  };
+
+  const handleOptionClick = async (promptKey: WritingPromptKey) => {
+    try {
+      const { prompt, systemMessage } = getWritingPrompt(
+        promptKey,
+        selectedText
+      );
+
+      let response = "";
+      const client = new LLMClient();
+
+      for await (const chunk of client.streamResponse(prompt, systemMessage)) {
+        response += chunk;
+        const formattedResponse: string = await formatResponse(response);
+        setModal({
+          visible: true,
+          content: formattedResponse,
+          top: contextMenu.top,
+          left: contextMenu.left,
+        });
+      }
+    } catch (error) {
+      console.error("Error details:", error);
+    }
+  };
+
+  const insertResponse = () => {
+    const quillInstance = quillRef.current?.getEditor();
+    if (!quillInstance || !modal.content) return;
+
+    try {
+      if (selectedRange) {
+        // Delete the selected text
+        quillInstance.deleteText(selectedRange.index, selectedRange.length);
+
+        // Insert the HTML content at the selection point
+        quillInstance.clipboard.dangerouslyPasteHTML(
+          selectedRange.index,
+          modal.content
+        );
+
+        // Get the length of the inserted content
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = modal.content;
+        const insertedLength = quillInstance.getText(
+          selectedRange.index,
+          tempDiv.textContent?.length || 0
+        ).length;
+
+        // Apply red color to the inserted text
+        quillInstance.formatText(selectedRange.index, insertedLength);
+
+        // Move cursor to end of inserted text
+        quillInstance.setSelection(selectedRange.index + insertedLength, 0);
+      } else {
+        // If no selection, insert at the end
+        const length = quillInstance.getLength();
+        quillInstance.clipboard.dangerouslyPasteHTML(length, modal.content);
+      }
+    } catch (e) {
+      console.warn("Error replacing selected text:", e);
+    }
+    setModal((prevState) => ({ ...prevState, visible: false }));
+    setSelectedRange(null);
+  };
+
+  const retryResponse = async () => {
+    if (!lastAction || !selectedText) return;
+
+    try {
+      await handleOptionClick(lastAction);
+    } catch (error) {
+      console.error("Error retrying action:", error);
+    }
+  };
+
+  const cancelResponse = () => {
+    setModal((prevState) => ({ ...prevState, visible: false }));
+  };
+
+  const handleCopy = () => {
+    const contentContainer = document.getElementById("content-container");
+    if (contentContainer) {
+      const range = document.createRange();
+      range.selectNode(contentContainer);
+
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        try {
+          const clipboardItem = new ClipboardItem({
+            "text/html": new Blob([contentContainer.innerHTML], {
+              type: "text/html",
+            }),
+            "text/plain": new Blob([contentContainer.innerText], {
+              type: "text/plain",
+            }),
+          });
+          navigator.clipboard.write([clipboardItem]).then(() => {
+            selection.removeAllRanges();
+          });
+        } catch (err) {
+          document.execCommand("copy");
+          selection.removeAllRanges();
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      // Check if the click is on a button
+      if (target.tagName === "BUTTON") {
+        return;
+      }
+
+      if (contextMenu.visible) {
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+      // Ensure it doesn't close when clicking inside the context menu or modal
+      if (target.closest("#ai-response-modal")) {
+        return;
+      }
+
+      setModal((prevState) => ({ ...prevState, visible: false }));
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [contextMenu, modal]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10 p-6 bg-gray-50 dark:bg-dark-800 rounded-lg">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
           Course Title
         </label>
         <input
@@ -105,22 +295,74 @@ const BasicInfo = ({ data, onUpdate }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
           Course Description
         </label>
-        <textarea
-          name="description"
-          value={data.description}
-          onChange={handleChange}
-          rows={4}
-          className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
-          placeholder="Describe your course"
-        />
+
+        <div onContextMenu={handleContextMenu}>
+          <ReactQuill
+            style={{ marginTop: "20px", marginBottom: "10px", height: "250px" }}
+            value={data.description}
+            onChange={(value) => handleChange({ name: "description", value })}
+            theme="snow"
+            className="w-full border-gray-300 dark:border-dark-700 rounded-lg dark:bg-dark-800 text-gray-900 dark:text-white"
+            ref={quillRef}
+            //@ts-ignore
+            onContextMenu={handleContextMenu}
+          />
+          {contextMenu.visible && (
+            <div
+              className="dark:bg-[#1e293b] bg-white context-menu"
+              style={{
+                position: "absolute",
+                top: contextMenu.top + 435,
+                left: contextMenu.left + 310,
+                zIndex: 1000,
+                borderRadius: "15px",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                padding: "4px 0",
+                minWidth: "150px",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col">
+                <button
+                  className="px-4 py-2 text-left flex items-center"
+                  onClick={() => handleActionSelect("explain")}
+                >
+                  <BookOpen className="w-4 h-4 mr-2" />
+                  Explain
+                </button>
+                <button
+                  className="px-4 py-2 text-left flex items-center"
+                  onClick={() => handleActionSelect("improve")}
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Improve Writing
+                </button>
+                <button
+                  className="px-4 py-2 text-left flex items-center"
+                  onClick={() => handleActionSelect("grammar")}
+                >
+                  <SpellCheck className="w-4 h-4 mr-2" />
+                  Fix Grammar
+                </button>
+                <button
+                  className="px-4 py-2 text-left flex items-center"
+                  onClick={() => handleActionSelect("concise")}
+                >
+                  <Pen className="w-4 h-4 mr-2" />
+                  Make Concise
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2 mt-5">
             Category
           </label>
           <select
@@ -130,15 +372,17 @@ const BasicInfo = ({ data, onUpdate }) => {
             className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
           >
             <option value="">Select a category</option>
-            {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
           Course Image
         </label>
         <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
@@ -191,6 +435,92 @@ const BasicInfo = ({ data, onUpdate }) => {
           </div>
         </div>
       </div>
+      {modal.visible && (
+        <div
+          id="ai-response-modal"
+          className="dark:bg-[#1e293b] bg-white"
+          style={{
+            position: "absolute",
+            top: modal.top + 395,
+            left: modal.left + 300,
+            zIndex: 1000,
+            borderRadius: "15px",
+            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+            border: "1px solid #e0e0e0",
+            width: "670px",
+            fontFamily: "Arial, sans-serif",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div
+            style={{
+              padding: "12px 16px",
+              borderBottom: "1px solid #e0e0e0",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+              AI Suggestion
+            </span>
+            <button
+              onClick={() => setModal({ ...modal, visible: false })}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "0",
+              }}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Modal Content */}
+          <div
+            id="content-container"
+            style={{
+              padding: "16px",
+              fontSize: "14px",
+              color: "dark:white",
+            }}
+            dangerouslySetInnerHTML={{ __html: modal.content }}
+          />
+
+          {/* Modal Footer */}
+          <div className="flex justify-between items-center mt-9">
+            <div className="flex space-x-3 mb-3">
+              <button
+                onClick={retryResponse}
+                className="px-5 py-2 text-[#172b4d] dark:text-white dark:hover:bg-slate-700 hover:bg-gray-200 text-md"
+              >
+                <MdOutlineReplay size={20} />
+              </button>
+              <button
+                onClick={handleCopy}
+                className="px-1 py-1 text-[#172b4d]  dark:text-white dark:hover:bg-slate-700 hover:bg-gray-200 text-md"
+              >
+                <MdContentCopy size={20} />
+              </button>
+            </div>
+            <div className="flex space-x-3 mr-5 mb-3">
+              <button
+                onClick={cancelResponse}
+                className="hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-white text-md font-semibold text-[#192d4e] px-5 py-1 rounded-md"
+              >
+                Discard
+              </button>
+              <button
+                onClick={insertResponse}
+                className="bg-blue-600 text-md text-white font-semibold px-3 py-1 rounded-md border-4 border-white outline outline-3.5 outline-blue-500 shadow-md hover:bg-blue-800 transition duration-200"
+              >
+                Replace
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

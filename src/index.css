@@ -70,3 +70,54 @@ html {
 .dark .hover-card:hover {
   @apply bg-dark-700/50 border-dark-600;
 }
+
+.quill {
+  .ql-toolbar {
+    border-radius: 10px 10px 0px 0px;
+  }
+  .ql-container {
+    border-radius: 0px 0px 10px 10px;
+  }
+}
+
+/* Add this CSS to your global styles or a CSS file */
+.ql-container:focus,
+.ql-container.ql-focused {
+  border: none !important;
+  outline: none !important;
+}
+
+.ql-editor:focus,
+.ql-editor.ql-focused {
+  border: none !important;
+  outline: none !important;
+}
+
+.ql-editor p {
+  font-family: inherit;
+  font-size: 15px;
+}
+
+@media (min-width: 1650px) {
+  #ai-response-modal {
+    left: 400px !important;
+  }
+}
+
+@media (min-width: 1720px) {
+  #ai-response-modal {
+    left: 450px !important;
+  }
+}
+
+@media (min-width: 1650px) {
+  .context-menu {
+    left: 400px !important;
+  }
+}
+
+@media (min-width: 1690px) {
+  .context-menu {
+    left: 440px !important;
+  }
+}

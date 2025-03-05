@@ -23,39 +23,60 @@ interface AuthState {
     onSuccess: (user: User, token: string) => void;
   }) => Promise<void>;
   signout: () => void;
+  loadUserFromStorage: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  token: null,
-  user: null,
-  isLoading: false,
-  error: null,
-  signin: async ({ credentials, onSuccess }) => {
-    set({ isLoading: true, error: null }); // Start loading
-    try {
-      const response = await fetch("http://localhost:4000/api/login", {
-        method: "POST",
-        body: JSON.stringify(credentials),
-        headers: { "Content-Type": "application/json" },
-      });
+export const useAuthStore = create<AuthState>((set) => {
+  // Load from localStorage when Zustand store initializes
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
 
-      if (!response.ok) {
-        throw new Error("Invalid credentials");
+  return {
+    token: token || null,
+    user: user ? JSON.parse(user) : null,
+    isLoading: false,
+    error: null,
+
+    signin: async ({ credentials, onSuccess }) => {
+      set({ isLoading: true, error: null });
+      try {
+        const response = await fetch("http://localhost:4000/api/login", {
+          method: "POST",
+          body: JSON.stringify(credentials),
+          headers: { "Content-Type": "application/json" },
+        });
+
+        if (!response.ok) {
+          throw new Error("Invalid credentials");
+        }
+
+        const data = await response.json();
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        set({ token: data.token, user: data.user, isLoading: false });
+
+        onSuccess(data.user, data.token);
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "An unknown error occurred";
+        set({ isLoading: false, error: errorMessage });
+        console.error("Login failed:", errorMessage);
       }
+    },
 
-      const data = await response.json();
-      // console.log("data is => ",data)
-      set({ token: data.token, user: data.user, isLoading: false }); // Store token, user & stop loading
+    signout: () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      set({ token: null, user: null, error: null });
+    },
 
-      onSuccess(data.user, data.token);
-    } catch (error) {
-      // Convert error to string safely
-      const errorMessage =
-        error instanceof Error ? error.message : "An unknown error occurred";
-      set({ isLoading: false, error: errorMessage }); // Stop loading & set error
-      console.error("Login failed:", errorMessage);
-    }
-  },
+    loadUserFromStorage: () => {
+      const token = localStorage.getItem("token");
+      const user = localStorage.getItem("user");
 
-  signout: () => set({ token: null, user: null, error: null }),
-}));
+      if (token && user) {
+        set({ token, user: JSON.parse(user) });
+      }
+    },
+  };
+});

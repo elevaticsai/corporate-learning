@@ -41,6 +41,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
   const [showPreview, setShowPreview] = useState(false);
   const [imagePrompt, setImagePrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
   const imageInputRef = useRef(null);
@@ -218,7 +219,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     }
   };
 
-  const handleGenerateImage = async (page = 1) => {
+  const generateImageUnsplash = async (page = 1) => {
     if (!imagePrompt.trim()) {
       toast.error("Please enter a prompt for image generation");
       return;
@@ -269,7 +270,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
   const handleLoadMore = () => {
     // Ensure we pass the next page number
     const nextPage = currentPage + 1;
-    handleGenerateImage(nextPage);
+    generateImageUnsplash(nextPage);
   };
 
   const handleImageSelect = async (imageUrl: string) => {
@@ -585,6 +586,64 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     }
   };
 
+  const generateImageWithAI = async () => {
+    if (!imagePrompt.trim()) {
+      toast.error("Please enter an image prompt");
+      return;
+    }
+
+    setIsGeneratingAI(true);
+    try {
+      const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_STABILITY_API_KEY}`,
+        },
+        body: JSON.stringify({
+          text_prompts: [{ text: imagePrompt }],
+          cfg_scale: 7,
+          height: 1024,
+          width: 1024,
+          steps: 30,
+          samples: 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const base64Image = result.artifacts[0].base64;
+      
+      // Convert base64 to blob
+      const byteCharacters = atob(base64Image);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'image/png' });
+      
+      // Create a File object
+      const file = new File([blob], 'generated-image.png', { type: 'image/png' });
+      
+      // Upload the generated image
+      const uploadResponse = await uploadImage(file);
+      setNewChapter((prev) => ({
+        ...prev,
+        image: uploadResponse.fileUrl,
+      }));
+      toast.success("AI image generated and uploaded successfully!");
+    } catch (error) {
+      console.error('Error generating image:', error);
+      toast.error("Failed to generate image with AI");
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -705,22 +764,37 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
                     value={imagePrompt}
                     onChange={(e) => setImagePrompt(e.target.value)}
                     placeholder="Enter prompt to generate image..."
-                    className="w-full px-4 py-3 border border-gray-200 dark:bg-dark-800 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-24"
+                    className="w-full px-4 py-3 border border-gray-200 dark:bg-dark-800 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
-                  <button
-                    type="button"
-                    //@ts-ignore
-                    onClick={handleGenerateImage}
-                    disabled={isGenerating}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 flex items-center gap-2 text-sm"
-                  >
-                    {isGenerating ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
-                    ) : (
-                      <Wand2 className="w-4 h-4" />
-                    )}
-                    Generate
-                  </button>
+                  <div className="flex space-x-2 mt-2">
+                    <button
+                      type="button"
+                      //@ts-ignore
+                    onClick={generateImageUnsplash}
+                      disabled={!imagePrompt.trim() || isGenerating}
+                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isGenerating ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
+                      ) : (
+                        <Wand2 className="w-4 h-4" />
+                      )}
+                      Generate with Unsplash
+                    </button>
+                    <button
+                      type="button"
+                      onClick={generateImageWithAI}
+                      disabled={!imagePrompt.trim() || isGeneratingAI}
+                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingAI ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
+                      ) : (
+                        <Wand2 className="w-4 h-4" />
+                      )}
+                      Generate with AI
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
                   {newChapter.image ? (

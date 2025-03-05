@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useSelector } from "react-redux";
@@ -15,6 +15,7 @@ import {
   Sun,
   UserPlus,
   CreditCard,
+  Presentation,
   CheckCircle,
   Clock,
   Home,
@@ -60,6 +61,7 @@ const menuItems = [
     roles: ["EMPLOYEE"],
   },
   {
+    title: "Create Courses",
     title: "Completed Courses",
     icon: CheckCircle,
     path: "/employee/completed-courses",
@@ -78,6 +80,12 @@ const menuItems = [
     roles: ["SUPER_ADMIN", "INSTRUCTOR"],
   },
   {
+    title: "Create Presentation",
+    icon: Presentation,
+    path: "/presentation/create",
+    roles: ["SUPER_ADMIN", "INSTRUCTOR"],
+  },
+  {
     title: "Settings",
     icon: Settings,
     path: "/admin/settings",
@@ -92,6 +100,22 @@ const AdminLayout = () => {
   const signout = useAuthStore((state) => state.signout);
   const { theme, toggleTheme } = useTheme();
 
+  useEffect(() => {
+    const handlePresentationMode = () => {
+      const isPresentationMode = sessionStorage.getItem("presentationMode") === "true";
+      setSidebarOpen(!isPresentationMode);
+    };
+
+    handlePresentationMode();
+
+    const customEventName = "presentationModeChange";
+    window.addEventListener(customEventName, handlePresentationMode);
+
+    return () => {
+      window.removeEventListener(customEventName, handlePresentationMode);
+    };
+  }, []);
+
   const handleLogout = () => {
     signout();
     setUserMenuOpen(false);
@@ -104,8 +128,8 @@ const AdminLayout = () => {
     <div className="flex bg-gray-60 dark:bg-dark-900 min-h-screen">
       <div
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 transform transition-transform duration-200 ease-in-out ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 lg:static flex-shrink-0 flex flex-col`}
+          sidebarOpen && sessionStorage.getItem("presentationMode") !== "true" ? "translate-x-0" : "-translate-x-full"
+        } lg:${sessionStorage.getItem("presentationMode") === "true" ? "-translate-x-full" : "translate-x-0"} lg:static flex-shrink-0 flex flex-col`}
       >
         <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-dark-700">
           <span className="text-xl font-semibold text-gray-800 dark:text-white">
@@ -174,7 +198,6 @@ const AdminLayout = () => {
           </button>
         </div>
       </div>
-
       <div className="flex-1 flex flex-col">
         <main className="p-4 lg:p-8 dark:bg-dark-900">
           <Outlet />

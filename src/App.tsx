@@ -24,6 +24,7 @@ import ResetPassword from "./components/auth/ResetPassword";
 import store from "./redux/store";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Settings from "./components/admin/Setting";
+import CreatePresentation from "./components/presentation/CreatePresentation";
 import ProtectedRoute from "./store/ProtectedRoute";
 import CompletedCourses from "./components/employee/CompletedCourses";
 import PendingCourses from "./components/employee/PendingCourses";
@@ -57,6 +58,53 @@ function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/signup" element={<OnboardingForm />} />
 
+          {/* Admin routes with ThemeProvider */}
+          <Route
+            path="/admin"
+            element={
+              <ThemeProvider>
+                <AdminLayout />
+              </ThemeProvider>
+            }
+          >
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="hr" element={<HRDashboard />} />
+            <Route path="hr/user-management" element={<UserManagement />} />
+            <Route path="employee" element={<EmployeeDashboard />} />
+            <Route path="instructor" element={<InstructorDashboard />} />
+            <Route path="training/:id" element={<TrainingDetails />} />
+            <Route path="courses/create" element={<CreateCourse />} />
+            <Route
+              path="presentation/create"
+              element={<CreatePresentation />}
+            />
+            <Route path="courses/edit/:courseId" element={<CreateCourse />} />
+            <Route path="course-review/:id" element={<CourseReview />} />
+          </Route>
+
+          {/* Other authenticated routes with ThemeProvider */}
+          <Route
+            path="/"
+            element={
+              <ThemeProvider>
+                <AdminLayout />
+              </ThemeProvider>
+            }
+          >
+            <Route path="hr" element={<HRDashboard />} />
+            <Route path="hr/user-management" element={<UserManagement />} />
+            <Route path="employee" element={<EmployeeDashboard />} />
+            <Route path="instructor" element={<InstructorDashboard />} />
+            <Route path="training/:id" element={<TrainingDetails />} />
+            <Route path="courses/create" element={<CreateCourse />} />
+            <Route path="courses/edit/:courseId" element={<CreateCourse />} />
+            <Route
+              path="presentation/create"
+              element={<CreatePresentation />}
+            />
+            <Route path="course-review/:id" element={<CourseReview />} />
           <Route element={<ProtectedRoute />}>
             {/* Admin routes with ThemeProvider */}
             <Route

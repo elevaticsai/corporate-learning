@@ -1,13 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Upload, X, Pen, Sparkles, SpellCheck, BookOpen } from "lucide-react";
+import {
+  Upload,
+  X,
+  Pen,
+  Sparkles,
+  SpellCheck,
+  BookOpen,
+  Wand2,
+} from "lucide-react";
 //@ts-ignore
 import { uploadImage } from "../../utils/api.js";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import toast, { Toaster } from "react-hot-toast";
 import { LLMClient } from "../../services/llm-api-client.js";
 import { getWritingPrompt, WritingPromptKey } from "../../utils/prompts.js";
 import { marked } from "marked";
 import { MdContentCopy, MdOutlineReplay } from "react-icons/md";
+import ImageSelectionModal from '../common/ImageSelectionModal';
 
 const categories = [
   "Development",
@@ -23,6 +33,12 @@ const categories = [
 const BasicInfo = ({ data, onUpdate }: any) => {
   const [imagePreview, setImagePreview] = useState(data.image || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [imagePrompt, setImagePrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const imageInputRef = useRef(null);
 
   const quillRef = useRef<ReactQuill & { getEditor: () => any }>(null);
@@ -253,6 +269,130 @@ const BasicInfo = ({ data, onUpdate }: any) => {
     }
   };
 
+  const generateImage = async (page = 1) => {
+    if (!imagePrompt.trim()) {
+      alert("Please enter a prompt for image generation");
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      // Ensure page is a number
+      const pageNumber = Number(page) || 1;
+      
+      const response = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(imagePrompt)}&per_page=9&page=${pageNumber}`,
+        {
+          headers: {
+            Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch images');
+      }
+
+      const data = await response.json();
+     
+
+      const newImages = data.results.map((result: any) => result.urls.regular);
+      
+      // Update images based on page number
+      if (pageNumber === 1) {
+        setGeneratedImages(newImages);
+      } else {
+        setGeneratedImages(prev => [...prev, ...newImages]);
+      }
+      
+      setIsModalOpen(true);
+      setCurrentPage(pageNumber);
+      
+      // Fix hasMore calculation
+      const hasMorePages = pageNumber < data.total_pages;
+      setHasMore(hasMorePages);
+    } catch (error) {
+      alert("Failed to generate images. Please try again.");
+      console.error(error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    // Ensure we pass the next page number
+    const nextPage = currentPage + 1;
+    generateImage(nextPage);
+  };
+
+  const handleImageSelect = async (imageUrl: string) => {
+    // Show selection toast first
+    toast.success('Image selected! Starting upload...', {
+      duration: 2000,
+      //@ts-ignore
+      position: 'top-center',
+      style: {
+        backgroundColor: '#2196F3',
+        color: 'white',
+        padding: '16px',
+        borderRadius: '8px',
+        textAlign: 'center',
+        minWidth: '300px',
+      },
+    });
+    
+    // Close modal immediately after selection
+    setIsModalOpen(false);
+    
+    try {
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "image.jpg", { type: "image/jpeg" });
+      
+      if (imageInputRef.current) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        //@ts-ignore
+        imageInputRef.current.files = dataTransfer.files;
+      }
+
+      // Upload the image
+      const uploadResponse = await uploadImage(file);
+      setImagePreview(uploadResponse.fileUrl);
+      data.image = uploadResponse.fileUrl;
+      setImagePrompt("");
+      
+      toast.success('Image uploaded successfully!', {
+        duration: 3000,
+        //@ts-ignore
+        position: 'top-center',
+        style: {
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '8px',
+          textAlign: 'center',
+          minWidth: '300px',
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to upload image. Please try again.', {
+        duration: 3000,
+        //@ts-ignore
+        position: 'top-center',
+        style: {
+          backgroundColor: '#f44336',
+          color: 'white',
+          padding: '16px',
+          borderRadius: '8px',
+          textAlign: 'center',
+          minWidth: '300px',
+        },
+      });
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -278,8 +418,10 @@ const BasicInfo = ({ data, onUpdate }: any) => {
     };
   }, [contextMenu, modal]);
 
+
   return (
     <div className="space-y-10 p-6 bg-gray-50 dark:bg-dark-800 rounded-lg">
+      <Toaster position="top-center" />
       <div>
         <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
           Course Title
@@ -385,53 +527,80 @@ const BasicInfo = ({ data, onUpdate }: any) => {
         <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
           Course Image
         </label>
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
-          <div className="space-y-1 text-center">
-            {imagePreview ? (
-              <div className="relative w-full max-w-xs">
-                <div className="aspect-w-16 aspect-h-9">
-                  <img
-                    src={imagePreview}
-                    alt="Course preview"
-                    className="object-cover rounded-lg w-full h-full"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleRemoveImage}
-                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <>
-                {isUploading ? (
-                  <div className="flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
+        <div className="space-y-4">
+          <div className="relative">
+            <input
+              type="text"
+              value={imagePrompt}
+              onChange={(e) => setImagePrompt(e.target.value)}
+              placeholder="Enter prompt to generate image..."
+              className="w-full px-4 py-3 border border-gray-200 dark:bg-dark-800 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-24"
+            />
+            <button
+              type="button"
+              //@ts-ignore
+              onClick={generateImage}
+              disabled={isGenerating}
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 flex items-center gap-2 text-sm"
+            >
+              {isGenerating ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
+              ) : (
+                <Wand2 className="w-4 h-4" />
+              )}
+              Generate
+            </button>
+          </div>
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
+            <div className="space-y-1 text-center">
+              {imagePreview ? (
+                <div className="relative w-full max-w-xs">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <img
+                      src={imagePreview}
+                      alt="Course preview"
+                      className="object-cover rounded-lg w-full h-full"
+                    />
                   </div>
-                ) : (
-                  <>
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label className="relative cursor-pointer bg-white dark:bg-dark-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                        <span>Upload a file</span>
-                        <input
-                          ref={imageInputRef}
-                          type="file"
-                          className="sr-only"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          disabled={isUploading}
-                        />
-                      </label>
-                      <p className="pl-1">or drag and drop</p>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {isUploading ? (
+                    <div className="flex justify-center items-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
                     </div>
-                    <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
-                  </>
-                )}
-              </>
-            )}
+                  ) : (
+                    <>
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label className="relative cursor-pointer bg-white dark:bg-dark-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                          <span>Upload a file</span>
+                          <input
+                            ref={imageInputRef}
+                            type="file"
+                            className="sr-only"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            disabled={isUploading}
+                          />
+                        </label>
+                        <p className="pl-1">or drag and drop</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG up to 5MB
+                      </p>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -521,6 +690,15 @@ const BasicInfo = ({ data, onUpdate }: any) => {
           </div>
         </div>
       )}
+      <ImageSelectionModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        images={generatedImages}
+        onSelectImage={handleImageSelect}
+        loading={isGenerating}
+        onLoadMore={handleLoadMore}
+        hasMore={hasMore}
+      />
     </div>
   );
 };

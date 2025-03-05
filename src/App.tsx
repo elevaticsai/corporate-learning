@@ -22,6 +22,7 @@ import ResetPassword from "./components/auth/ResetPassword";
 import store from "./redux/store";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Settings from "./components/admin/Setting";
+import CreatePresentation from "./components/presentation/CreatePresentation";
 
 function App() {
   return (
@@ -43,7 +44,7 @@ function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/signup" element={<OnboardingForm />} />
-          
+
           {/* Admin routes with ThemeProvider */}
           <Route
             path="/admin"
@@ -62,6 +63,10 @@ function App() {
             <Route path="instructor" element={<InstructorDashboard />} />
             <Route path="training/:id" element={<TrainingDetails />} />
             <Route path="courses/create" element={<CreateCourse />} />
+            <Route
+              path="presentation/create"
+              element={<CreatePresentation />}
+            />
             <Route path="courses/edit/:courseId" element={<CreateCourse />} />
             <Route path="course-review/:id" element={<CourseReview />} />
           </Route>
@@ -82,6 +87,10 @@ function App() {
             <Route path="training/:id" element={<TrainingDetails />} />
             <Route path="courses/create" element={<CreateCourse />} />
             <Route path="courses/edit/:courseId" element={<CreateCourse />} />
+            <Route
+              path="presentation/create"
+              element={<CreatePresentation />}
+            />
             <Route path="course-review/:id" element={<CourseReview />} />
           </Route>
         </Routes>

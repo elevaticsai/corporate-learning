@@ -16,6 +16,9 @@ import {
   UserPlus,
   CreditCard,
   Presentation,
+  CheckCircle,
+  Clock,
+  Home,
 } from "lucide-react";
 
 import { useTheme } from "../contexts/ThemeContext";
@@ -53,12 +56,25 @@ const menuItems = [
   },
   {
     title: "Home",
-    icon: School,
+    icon: Home,
     path: "/employee",
     roles: ["EMPLOYEE"],
   },
   {
     title: "Create Courses",
+    title: "Completed Courses",
+    icon: CheckCircle,
+    path: "/employee/completed-courses",
+    roles: ["EMPLOYEE"],
+  },
+  {
+    title: "Pending courses",
+    icon: Clock,
+    path: "/employee/pending-courses",
+    roles: ["EMPLOYEE"],
+  },
+  {
+    title: "Courses",
     icon: BookOpen,
     path: "/courses/create",
     roles: ["SUPER_ADMIN", "INSTRUCTOR"],

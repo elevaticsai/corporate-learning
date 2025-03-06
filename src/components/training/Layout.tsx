@@ -36,7 +36,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
     onPlayPause,
   }) => {
     return (
-      <div className="absolute top-11 right-8 flex items-center space-x-2 bg-white/90 dark:bg-dark-700 backdrop-blur-sm rounded-lg px-3  shadow-lg">
+      <div className="absolute top-11 right-8 flex items-center space-x-2 bg-white/90 dark:bg-dark-700 backdrop-blur-sm rounded-xl px-1 h-7  shadow-lg">
         <button onClick={onPlayPause}>
           {isPlaying ? (
             <Pause className="w-5 h-5" />
@@ -291,7 +291,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
 
           {/* Right Section: Image & Media */}
           <div className="w-1/2 flex flex-col">
-            <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center">
+            <div className="relative flex-1 bg-gray-900 overflow-hidden flex items-center justify-center rounded-tr-xl">
               <img
                 src={selectedChapter?.content?.imgUrl || "/placeholder.jpg"}
                 alt={selectedChapter?.title || "Media"}

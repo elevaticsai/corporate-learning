@@ -314,9 +314,9 @@ const TrainingDetails = () => {
   }, [isAnswerCorrect]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 dark:bg-dark-900">
+    <div className="max-w-7xl mx-auto px-4  space-y-8 dark:bg-dark-900">
       {/* Breadcrumb Navigation */}
-      <nav className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+      <nav className="absolute top-5 flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
         <Link
           to="/employee"
           className="hover:text-gray-700 dark:hover:text-white"
@@ -339,30 +339,44 @@ const TrainingDetails = () => {
           {trainingDetails && (
             <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700 overflow-hidden">
               {/* Course Banner */}
-              <div className="relative h-64">
-                <img
-                  src={trainingDetails.imgUrl}
-                  alt={trainingDetails.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/40"></div>
-                <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <h1 className="text-3xl font-semibold mb-2">
-                    {trainingDetails.title}
-                  </h1>
-                </div>
-              </div>
+              <>
+                {trainingDetails && (
+                  <div className="bg-[#050A1F] text-white rounded-xl shadow-sm border border-gray-100 dark:border-dark-700 overflow-hidden flex relative">
+                    {/* Left Side: Title & Description */}
+                    <div className="w-1/2 p-8 flex flex-col justify-center relative z-10">
+                      <h1 className="text-3xl font-semibold mb-4">
+                        {trainingDetails.title}
+                      </h1>
+                      <p className="text-gray-300 leading-relaxed">
+                        {trainingDetails.description}
+                      </p>
+                    </div>
+
+                    {/* Right Side: Image */}
+                    <div className="relative w-1/2 h-96">
+                      <img
+                        src={trainingDetails.imgUrl}
+                        alt={trainingDetails.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+
+                    {/* Middle Dark Blue Gradient Film */}
+                    <div className="absolute inset-y-0 left-1/2 w-1/6 bg-gradient-to-r from-[#080b19] via-[#050A1Fac] to-transparent"></div>
+                  </div>
+                )}
+              </>
 
               {/* Course Chapters */}
               <div className="p-8 space-y-8">
-                <div>
+                {/* <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     About This Course
                   </h2>
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                     {trainingDetails.description}
                   </p>
-                </div>
+                </div> */}
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Course Content

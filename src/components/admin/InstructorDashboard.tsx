@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Cross,
 } from "lucide-react";
 import {
   BarChart,
@@ -32,6 +33,7 @@ import {
   getInstructorModules,
   deleteModule,
 } from "../../utils/api.js";
+import { MdCancel } from "react-icons/md";
 
 const courseEngagementData = [
   { month: "Jan", students: 65 },
@@ -191,7 +193,7 @@ const InstructorDashboard = () => {
   //   navigate("/courses/create");
   // };
 
-  const handleEditCourse = (courseId:any) => {
+  const handleEditCourse = (courseId: any) => {
     if (!courseId) {
       console.error("No course ID provided");
       return;
@@ -210,7 +212,7 @@ const InstructorDashboard = () => {
       await deleteModule(token, courseToDelete);
 
       setCoursesData((prevCourses) =>
-        prevCourses.filter((course:any) => course._id !== courseToDelete)
+        prevCourses.filter((course: any) => course._id !== courseToDelete)
       );
 
       setShowConfirmModal(false);
@@ -220,7 +222,7 @@ const InstructorDashboard = () => {
     }
   };
 
-  const confirmDelete = (courseId:any) => {
+  const confirmDelete = (courseId: any) => {
     setCourseToDelete(courseId);
     setShowConfirmModal(true);
   };
@@ -276,7 +278,7 @@ const InstructorDashboard = () => {
       </div>
 
       {/* Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <MetricCard
           icon={BookOpen}
           title="Total Courses"
@@ -293,6 +295,14 @@ const InstructorDashboard = () => {
           icon={Clock}
           title="Pending Approval"
           value={moduleCounts?.pending || "0"}
+        />
+        <MetricCard
+          icon={MdCancel}
+          title="Rejected Course"
+          value={
+            moduleCounts?.total -
+              (moduleCounts?.published + moduleCounts?.pending) || "0"
+          }
         />
       </div>
 

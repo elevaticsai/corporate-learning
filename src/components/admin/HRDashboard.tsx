@@ -487,6 +487,9 @@ const HRDashboard = () => {
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-dark-700/50">
               <tr>
+              <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Employee Code
+                </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                   Employee Name
                 </th>
@@ -519,6 +522,9 @@ const HRDashboard = () => {
                     key={idx}
                     className="hover:bg-gray-50 dark:hover:bg-dark-700/50 transition"
                   >
+                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
+                      {employee.employeeCode}
+                    </td>
                     <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
                       {employee.name}
                     </td>

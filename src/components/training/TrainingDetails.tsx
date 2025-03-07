@@ -5,6 +5,8 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Confetti from "react-confetti";
 import TemplateRenderer from "./Layout";
+import DOMPurify from 'dompurify';
+import parse from 'html-react-parser';
 
 import {
   ChevronLeft,
@@ -72,6 +74,19 @@ const TrainingDetails = () => {
 
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false);
   const isLastQuestion = nextQuestionId === null;
+
+  const [parsedDescription, setParsedDescription] = useState("");
+
+  useEffect(() => {
+    if (trainingDetails?.description) {
+      // First sanitize the HTML content
+      const sanitizedContent = DOMPurify.sanitize(trainingDetails.description);
+      // Then parse it to React elements
+      const parsedContent = parse(sanitizedContent);
+      //@ts-ignore
+      setParsedDescription(parsedContent);
+    }
+  }, [trainingDetails?.description]);
 
   const closePopup = () => {
     setIsPopupVisible(false);
@@ -347,9 +362,9 @@ const TrainingDetails = () => {
                       <h1 className="text-3xl font-semibold mb-4">
                         {trainingDetails.title}
                       </h1>
-                      <p className="text-gray-300 leading-relaxed">
-                        {trainingDetails.description}
-                      </p>
+                      <div className="text-gray-300 leading-relaxed">
+                        {parsedDescription}
+                      </div>
                     </div>
 
                     {/* Right Side: Image */}
@@ -401,12 +416,9 @@ const TrainingDetails = () => {
                               <h3 className="font-medium text-gray-900 dark:text-white">
                                 {chapter.title}
                               </h3>
-                              <p
-                                className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2"
-                                dangerouslySetInnerHTML={{
-                                  __html: chapter.description,
-                                }}
-                              />
+                              <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                {parse(DOMPurify.sanitize(chapter.description))}
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center space-x-4 ml-4">

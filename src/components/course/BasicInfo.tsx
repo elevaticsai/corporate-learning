@@ -18,6 +18,7 @@ import { getWritingPrompt, WritingPromptKey } from "../../utils/prompts.js";
 import { marked } from "marked";
 import { MdContentCopy, MdOutlineReplay } from "react-icons/md";
 import ImageSelectionModal from '../common/ImageSelectionModal';
+import DOMPurify from 'dompurify';
 
 const categories = [
   "Development",
@@ -152,12 +153,9 @@ const BasicInfo = ({ data, onUpdate }: any) => {
   };
 
   const formatResponse = async (text: string): Promise<string> => {
-    // const cleanedText: string = cleanMarkdownOutput(text);
     const planeText = removeMarkdownDelimiters(text);
     const markedText: string = await marked.parse(planeText);
-    // console.log("text is => ", markedText);
-    return markedText;
-    // return DOMPurify.sanitize(markedText);
+    return DOMPurify.sanitize(markedText);
   };
 
   const handleOptionClick = async (promptKey: WritingPromptKey) => {
@@ -194,35 +192,25 @@ const BasicInfo = ({ data, onUpdate }: any) => {
         // Delete the selected text
         quillInstance.deleteText(selectedRange.index, selectedRange.length);
 
-        // Insert the HTML content at the selection point
+        // Sanitize and insert the HTML content at the selection point
+        const sanitizedContent = DOMPurify.sanitize(modal.content);
         quillInstance.clipboard.dangerouslyPasteHTML(
           selectedRange.index,
-          modal.content
+          sanitizedContent
         );
 
-        // Get the length of the inserted content
-        const tempDiv = document.createElement("div");
-        tempDiv.innerHTML = modal.content;
-        const insertedLength = quillInstance.getText(
-          selectedRange.index,
-          tempDiv.textContent?.length || 0
-        ).length;
-
-        // Apply red color to the inserted text
-        quillInstance.formatText(selectedRange.index, insertedLength);
-
-        // Move cursor to end of inserted text
-        quillInstance.setSelection(selectedRange.index + insertedLength, 0);
-      } else {
-        // If no selection, insert at the end
-        const length = quillInstance.getLength();
-        quillInstance.clipboard.dangerouslyPasteHTML(length, modal.content);
+        // Clear the modal and selection
+        setModal({ ...modal, visible: false });
+        setSelectedRange(null);
+        
+        // Update the parent component with sanitized content
+        const updatedContent = DOMPurify.sanitize(quillInstance.root.innerHTML);
+        handleChange({ name: "description", value: updatedContent });
       }
-    } catch (e) {
-      console.warn("Error replacing selected text:", e);
+    } catch (error) {
+      console.error("Error inserting response:", error);
+      toast.error("Failed to insert the response");
     }
-    setModal((prevState) => ({ ...prevState, visible: false }));
-    setSelectedRange(null);
   };
 
   const retryResponse = async () => {

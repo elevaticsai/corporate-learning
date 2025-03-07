@@ -1,5 +1,7 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Pause, Volume2, PlayCircle } from "lucide-react";
+import DOMPurify from 'dompurify';
+import parse from 'html-react-parser';
 
 interface ChapterContent {
   imgUrl?: string;
@@ -21,10 +23,21 @@ interface TemplateRendererProps {
 const TemplateRenderer: React.FC<TemplateRendererProps> = ({
   selectedChapter,
 }) => {
+  const [parsedDescription, setParsedDescription] = useState("");
+
+  useEffect(() => {
+    if (selectedChapter?.description) {
+      // First sanitize the HTML content
+      const sanitizedContent = DOMPurify.sanitize(selectedChapter.description);
+      // Then parse it to React elements
+      const parsedContent = parse(sanitizedContent);
+      //@ts-ignore
+      setParsedDescription(parsedContent);
+    }
+  }, [selectedChapter?.description]);
+
   // Media control states
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   interface AudioControlsProps {
@@ -84,7 +97,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
               {selectedChapter?.title}
             </h1>
             <div className="prose prose-lg dark:prose-dark">
-              {selectedChapter?.description}
+              {parsedDescription}
             </div>
           </div>
           {selectedChapter?.content?.imgUrl && (
@@ -116,7 +129,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
               {selectedChapter?.title}
             </h1>
             <div className="prose prose-lg dark:prose-dark">
-              {selectedChapter?.description}
+              {parsedDescription}
             </div>
           </div>
           <div className="lg:w-1/2 relative">
@@ -157,7 +170,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
               {selectedChapter?.title}
             </h1>
             <div className="prose prose-lg dark:prose-dark">
-              {selectedChapter?.description}
+              {parsedDescription}
             </div>
           </div>
           {selectedChapter?.content?.audioUrl && (
@@ -189,7 +202,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
               {selectedChapter?.title}
             </h1>
             <div className="prose prose-lg dark:prose-dark">
-              {selectedChapter?.description}
+              {parsedDescription}
             </div>
           </div>
           {selectedChapter?.content?.audioUrl && (
@@ -221,7 +234,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
                 {selectedChapter?.title}
               </h1>
               <div className="prose prose-lg dark:prose-dark">
-                {selectedChapter?.description}
+                {parsedDescription}
               </div>
             </div>
           </div>
@@ -256,7 +269,7 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
           )}
           <div className="max-w-4xl mx-auto p-8">
             <div className="prose prose-lg dark:prose-dark">
-              {selectedChapter?.description}
+              {parsedDescription}
             </div>
           </div>
           {selectedChapter?.content?.audioUrl && (
@@ -281,12 +294,9 @@ const TemplateRenderer: React.FC<TemplateRendererProps> = ({
             </h2>
             <div
               className="prose prose-blue max-w-none dark:prose-dark"
-              dangerouslySetInnerHTML={{
-                __html:
-                  selectedChapter?.description ||
-                  "<p>No content available.</p>",
-              }}
-            ></div>
+            >
+              {parsedDescription}
+            </div>
           </div>
 
           {/* Right Section: Image & Media */}

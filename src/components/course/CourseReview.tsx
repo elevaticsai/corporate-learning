@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import DOMPurify from 'dompurify';
+import parse from 'html-react-parser';
 import {
   ChevronLeft,
   CheckCircle,
@@ -17,8 +19,12 @@ import {
   Save,
   X
 } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger
+} from '../ui/tabs';
 import { login, getModuleByIdAdmin, updateModulebyAdmin, updateCourseStatus, uploadImage } from '../../utils/api.js';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const CourseReview = () => {
   const { id } = useParams();
@@ -129,7 +135,8 @@ const CourseReview = () => {
   };
 
   const handleEditChapter = (chapter) => {
-    setEditingChapter({ ...chapter });
+    const sanitizedDescription = DOMPurify.sanitize(chapter.description || '');
+    setEditingChapter({ ...chapter, description: sanitizedDescription });
     setShowEditModal(true);
   };
 
@@ -264,7 +271,9 @@ const CourseReview = () => {
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900 dark:text-white">{chapter.title}</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-300">{chapter.duration}</p>
+                      {/* <div className="text-sm text-gray-500 dark:text-gray-300">
+                        {parse(DOMPurify.sanitize(chapter.description || ''))}
+                      </div> */}
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
@@ -306,7 +315,7 @@ const CourseReview = () => {
           <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800">
             <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6">{selectedChapter.title}</h2>
             <div className="prose prose-blue max-w-none dark:prose-dark">
-              {selectedChapter.description}
+              {parse(DOMPurify.sanitize(selectedChapter.description || ''))}
             </div>
           </div>
 
@@ -496,7 +505,7 @@ const CourseReview = () => {
           <>
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Description</h3>
-              <p className="text-gray-600 dark:text-gray-300">{courseData?.description}</p>
+              <p className="text-gray-600 dark:text-gray-300">{parse(DOMPurify.sanitize(courseData?.description || ''))}</p>
             </div>
           </>
         )}
@@ -674,11 +683,19 @@ const CourseReview = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Content</label>
-                <textarea
+                <ReactQuill
                   value={editingChapter.description}
-                  onChange={(e) => setEditingChapter({ ...editingChapter, description: e.target.value })}
-                  rows={6}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
+                  onChange={(value) => setEditingChapter({ ...editingChapter, description: value })}
+                  className="bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
+                  modules={{
+                    toolbar: [
+                      [{ 'header': [1, 2, 3, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                      ['link'],
+                      ['clean']
+                    ]
+                  }}
                 />
               </div>
               <div>

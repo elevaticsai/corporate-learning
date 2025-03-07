@@ -23,6 +23,7 @@ import { LLMClient } from "../../services/llm-api-client.js";
 import { MdContentCopy, MdOutlineReplay } from "react-icons/md";
 import ImageSelectionModal from '../common/ImageSelectionModal';
 import toast, { Toaster } from "react-hot-toast";
+import DOMPurify from 'dompurify';
 
 const ChapterCreation = ({ chapters, onUpdate }: any) => {
   const [newChapter, setNewChapter] = useState({
@@ -78,6 +79,9 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
   const handleAddOrUpdateChapter = () => {
     if (newChapter.title && newChapter.content && newChapter.layout) {
+      // Sanitize the content before saving
+      const sanitizedContent = DOMPurify.sanitize(newChapter.content);
+      
       if (editingChapterId !== null) {
         onUpdate(
           normalizedChapters.map((chapter: any) =>
@@ -85,7 +89,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
               ? {
                   ...chapter,
                   title: newChapter.title,
-                  description: newChapter.content,
+                  description: sanitizedContent,
                   duration: newChapter.duration,
                   content: {
                     imgUrl: newChapter.image || "",
@@ -106,14 +110,14 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
           {
             id: Date.now(),
             title: newChapter.title,
-            description: newChapter.content,
+            description: sanitizedContent,
             duration: newChapter.duration,
             content: {
               imgUrl: newChapter.image || "",
               audioUrl: newChapter.audio || "",
             },
             //@ts-ignore
-            layout: newChapter.layout ? newChapter.layout : newChapter.template, // Add layout
+            layout: newChapter.layout ? newChapter.layout : newChapter.template,
           },
         ]);
       }
@@ -123,7 +127,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
         duration: "",
         image: "",
         audio: "",
-        layout: "", // Reset layout
+        layout: "",
       });
     } else {
       alert("Please fill in all required fields and select a layout");

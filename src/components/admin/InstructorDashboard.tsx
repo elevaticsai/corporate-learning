@@ -417,7 +417,7 @@ const InstructorDashboard = () => {
               <img
                 src={course.imgUrl}
                 alt={course.title}
-                className="w-full h-48 object-cover"
+                className="w-full aspect-[16/9] object-cover"
               />
               <div className="p-4">
                 <div className="flex items-center justify-between mb-2">

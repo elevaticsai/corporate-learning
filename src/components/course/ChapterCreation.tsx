@@ -21,9 +21,9 @@ import { marked } from "marked";
 import { getWritingPrompt, WritingPromptKey } from "../../utils/prompts.js";
 import { LLMClient } from "../../services/llm-api-client.js";
 import { MdContentCopy, MdOutlineReplay } from "react-icons/md";
-import ImageSelectionModal from '../common/ImageSelectionModal';
+import ImageSelectionModal from "../common/ImageSelectionModal";
 import toast, { Toaster } from "react-hot-toast";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
 
 const ChapterCreation = ({ chapters, onUpdate }: any) => {
   const [newChapter, setNewChapter] = useState({
@@ -81,7 +81,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     if (newChapter.title && newChapter.content && newChapter.layout) {
       // Sanitize the content before saving
       const sanitizedContent = DOMPurify.sanitize(newChapter.content);
-      
+
       if (editingChapterId !== null) {
         onUpdate(
           normalizedChapters.map((chapter: any) =>
@@ -233,33 +233,37 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     try {
       // Ensure page is a number
       const pageNumber = Number(page) || 1;
-      
+
       const response = await fetch(
-        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(imagePrompt)}&per_page=9&page=${pageNumber}`,
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(
+          imagePrompt
+        )}&per_page=9&page=${pageNumber}`,
         {
           headers: {
-            Authorization: `Client-ID ${import.meta.env.VITE_UNSPLASH_ACCESS_KEY}`
-          }
+            Authorization: `Client-ID ${
+              import.meta.env.VITE_UNSPLASH_ACCESS_KEY
+            }`,
+          },
         }
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch images');
+        throw new Error("Failed to fetch images");
       }
 
       const data = await response.json();
       const newImages = data.results.map((result: any) => result.urls.regular);
-      
+
       // Update images based on page number
       if (pageNumber === 1) {
         setGeneratedImages(newImages);
       } else {
-        setGeneratedImages(prev => [...prev, ...newImages]);
+        setGeneratedImages((prev) => [...prev, ...newImages]);
       }
-      
+
       setIsModalOpen(true);
       setCurrentPage(pageNumber);
-      
+
       // Fix hasMore calculation
       const hasMorePages = pageNumber < data.total_pages;
       setHasMore(hasMorePages);
@@ -279,29 +283,29 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
   const handleImageSelect = async (imageUrl: string) => {
     // Show selection toast first
-    toast.success('Image selected! Starting upload...', {
+    toast.success("Image selected! Starting upload...", {
       duration: 2000,
       //@ts-ignore
-      position: 'top-center',
+      position: "top-center",
       style: {
-        backgroundColor: '#2196F3',
-        color: 'white',
-        padding: '16px',
-        borderRadius: '8px',
-        textAlign: 'center',
-        minWidth: '300px',
+        backgroundColor: "#2196F3",
+        color: "white",
+        padding: "16px",
+        borderRadius: "8px",
+        textAlign: "center",
+        minWidth: "300px",
       },
     });
-    
+
     // Close modal immediately after selection
     setIsModalOpen(false);
-    
+
     setLoading(true);
     try {
       const response = await fetch(imageUrl);
       const blob = await response.blob();
       const file = new File([blob], "image.jpg", { type: "image/jpeg" });
-      
+
       if (imageInputRef.current) {
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
@@ -316,33 +320,33 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
         image: uploadResponse.fileUrl,
       }));
       setImagePrompt("");
-      
-      toast.success('Image uploaded successfully!', {
+
+      toast.success("Image uploaded successfully!", {
         duration: 3000,
         //@ts-ignore
-        position: 'top-center',
+        position: "top-center",
         style: {
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          padding: '16px',
-          borderRadius: '8px',
-          textAlign: 'center',
-          minWidth: '300px',
+          backgroundColor: "#4CAF50",
+          color: "white",
+          padding: "16px",
+          borderRadius: "8px",
+          textAlign: "center",
+          minWidth: "300px",
         },
       });
     } catch (error) {
       console.error(error);
-      toast.error('Failed to upload image. Please try again.', {
+      toast.error("Failed to upload image. Please try again.", {
         duration: 3000,
         //@ts-ignore
-        position: 'top-center',
+        position: "top-center",
         style: {
-          backgroundColor: '#f44336',
-          color: 'white',
-          padding: '16px',
-          borderRadius: '8px',
-          textAlign: 'center',
-          minWidth: '300px',
+          backgroundColor: "#f44336",
+          color: "white",
+          padding: "16px",
+          borderRadius: "8px",
+          textAlign: "center",
+          minWidth: "300px",
         },
       });
     } finally {
@@ -538,8 +542,8 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
   // Function to strip HTML tags and decode HTML entities
   const stripHtml = (html: string) => {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    return doc.body.textContent || '';
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || "";
   };
 
   const convertTextToSpeech = async (text: string) => {
@@ -551,7 +555,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     setIsConverting(true);
     try {
       const cleanText = stripHtml(text);
-      
+
       const params = new URLSearchParams({
         text: cleanText,
         voice: "en-GB-SoniaNeural",
@@ -598,21 +602,24 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
     setIsGeneratingAI(true);
     try {
-      const response = await fetch('https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_STABILITY_API_KEY}`,
-        },
-        body: JSON.stringify({
-          text_prompts: [{ text: imagePrompt }],
-          cfg_scale: 7,
-          height: 1024,
-          width: 1024,
-          steps: 30,
-          samples: 1,
-        }),
-      });
+      const response = await fetch(
+        "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_STABILITY_API_KEY}`,
+          },
+          body: JSON.stringify({
+            text_prompts: [{ text: imagePrompt }],
+            cfg_scale: 7,
+            height: 1024,
+            width: 1024,
+            steps: 30,
+            samples: 1,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -620,7 +627,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
       const result = await response.json();
       const base64Image = result.artifacts[0].base64;
-      
+
       // Convert base64 to blob
       const byteCharacters = atob(base64Image);
       const byteNumbers = new Array(byteCharacters.length);
@@ -628,11 +635,13 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
       }
       const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'image/png' });
-      
+      const blob = new Blob([byteArray], { type: "image/png" });
+
       // Create a File object
-      const file = new File([blob], 'generated-image.png', { type: 'image/png' });
-      
+      const file = new File([blob], "generated-image.png", {
+        type: "image/png",
+      });
+
       // Upload the generated image
       const uploadResponse = await uploadImage(file);
       setNewChapter((prev) => ({
@@ -641,7 +650,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
       }));
       toast.success("AI image generated and uploaded successfully!");
     } catch (error) {
-      console.error('Error generating image:', error);
+      console.error("Error generating image:", error);
       toast.error("Failed to generate image with AI");
     } finally {
       setIsGeneratingAI(false);
@@ -774,7 +783,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
                     <button
                       type="button"
                       //@ts-ignore
-                    onClick={generateImageUnsplash}
+                      onClick={generateImageUnsplash}
                       disabled={!imagePrompt.trim() || isGenerating}
                       className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
@@ -993,26 +1002,26 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
             placeholder="Duration (e.g., 15 mins)"
             className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
           />
-          <div className="flex space-x-4">
-            <button
-              onClick={handleAddOrUpdateChapter}
-              disabled={
-                !newChapter.title || !newChapter.content || !newChapter.layout
-              }
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {editingChapterId ? "Update Chapter" : "Add Chapter"}
-            </button>
-            {editingChapterId && (
-              <button
-                onClick={handleCancelEdit}
-                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
         </div>
+      </div>
+      <div className="flex justify-end space-x-4 py-6">
+        <button
+          onClick={handleAddOrUpdateChapter}
+          disabled={
+            !newChapter.title || !newChapter.content || !newChapter.layout
+          }
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {editingChapterId ? "Update Chapter" : "Add Chapter"}
+        </button>
+        {editingChapterId && (
+          <button
+            onClick={handleCancelEdit}
+            className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+        )}
       </div>
 
       {modal.visible && (

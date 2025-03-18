@@ -31,6 +31,15 @@ const CreateCourse = () => {
   const [successMessage, setSuccessMessage] = useState(false);
   const [showLayoutPreview, setShowLayoutPreview] = useState(false);
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("basic-info");
+
+  const handleNext = () => {
+    if (activeTab === "basic-info") {
+      setActiveTab("chapters");
+    } else if (activeTab === "chapters") {
+      setActiveTab("quiz");
+    }
+  };
 
   useEffect(() => {
     if (moduleId) {
@@ -120,7 +129,7 @@ const CreateCourse = () => {
 
       setTimeout(() => {
         setSuccessMessage(false); // Hide message after 3 seconds
-        navigate("/instructor");
+        // navigate("/instructor");
       }, 3000);
     } catch (error) {
       console.error("Error saving course:", error);
@@ -155,24 +164,41 @@ const CreateCourse = () => {
       </div>
 
       <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm border border-gray-100 dark:border-dark-700">
-        <Tabs defaultValue="basic-info" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="border-b border-gray-200 dark:border-dark-700">
             <TabsList className="flex">
               <TabsTrigger
                 value="basic-info"
-                className="flex-1 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:text-gray-700 focus:bg-gray-50"
+                onClick={() => setActiveTab("basic-info")}
+                className={`flex-1 px-6 py-4 text-sm font-medium ${
+                  activeTab === "basic-info"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700"
+                }`}
               >
                 Basic Info
               </TabsTrigger>
+
               <TabsTrigger
                 value="chapters"
-                className="flex-1 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:text-gray-700 focus:bg-gray-50"
+                onClick={() => setActiveTab("chapters")}
+                className={`flex-1 px-6 py-4 text-sm font-medium ${
+                  activeTab === "chapters"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700"
+                }`}
               >
                 Chapters
               </TabsTrigger>
+
               <TabsTrigger
                 value="quiz"
-                className="flex-1 px-6 py-4 text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700 focus:outline-none focus:text-gray-700 focus:bg-gray-50"
+                onClick={() => setActiveTab("quiz")}
+                className={`flex-1 px-6 py-4 text-sm font-medium ${
+                  activeTab === "quiz"
+                    ? "text-blue-600 border-b-2 border-blue-600"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 hover:bg-gray-50 dark:hover:bg-dark-700"
+                }`}
               >
                 Quiz
               </TabsTrigger>
@@ -209,45 +235,30 @@ const CreateCourse = () => {
           >
             Cancel
           </button>
-          <button
-            onClick={handleSaveCourse}
-            disabled={isLoading}
-            className={`px-6 py-2 rounded-lg text-white transition focus:ring-4 focus:ring-blue-200 ${
-              isLoading
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
-            }`}
-          >
-            {isLoading ? (
-              <div className="flex items-center">
-                <svg
-                  className="animate-spin h-5 w-5 mr-2 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 11-8 8z"
-                  ></path>
-                </svg>
-                {isEditMode ? "Updating..." : "Saving..."}
-              </div>
-            ) : isEditMode ? (
-              "Update Course"
-            ) : (
-              "Save Course"
-            )}
-          </button>
+          {activeTab !== "quiz" ? (
+            <button
+              onClick={handleNext}
+              className="px-6 py-2 rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition focus:ring-4 focus:ring-blue-200"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              onClick={handleSaveCourse}
+              disabled={isLoading}
+              className={`px-6 py-2 rounded-lg text-white transition focus:ring-4 focus:ring-blue-200 ${
+                isLoading
+                  ? "bg-blue-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
+            >
+              {isLoading
+                ? "Saving..."
+                : isEditMode
+                ? "Update Course"
+                : "Save Course"}
+            </button>
+          )}
         </div>
       </div>
 

@@ -140,7 +140,7 @@ const CreateCourse = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 ">
       {successMessage && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white dark:bg-dark-800 p-8 rounded-xl shadow-lg text-center w-80 animate-fadeIn flex flex-col items-center">

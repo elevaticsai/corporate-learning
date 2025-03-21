@@ -77,6 +77,14 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     },
   }));
 
+  const handleTitleChange = (newTitle: string) => {
+    setNewChapter((prev) => ({ ...prev, title: newTitle }));
+  };
+
+  const handleContentChange = (newContent: string) => {
+    setNewChapter((prev) => ({ ...prev, content: newContent }));
+  };
+
   const handleAddOrUpdateChapter = () => {
     if (newChapter.title && newChapter.content && newChapter.layout) {
       // Sanitize the content before saving
@@ -684,323 +692,534 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
   return (
     <div className="space-y-15">
-      <Toaster position="top-center" />
-      <div className="bg-gray-50 dark:bg-dark-800 p-6 rounded-lg">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-          {editingChapterId ? "Edit Chapter" : "Add New Chapter"}
-        </h3>
-        <div className="space-y-14">
-          <input
-            type="text"
-            value={newChapter.title}
-            onChange={(e) =>
-              setNewChapter({ ...newChapter, title: e.target.value })
-            }
-            placeholder="Chapter Title"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
-          />
-          <div onContextMenu={handleContextMenu}>
-            <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Chapter Content
-            </label>
-            <ReactQuill
-              style={{
-                marginTop: "20px",
-                marginBottom: "10px",
-                height: "200px",
-              }}
-              value={newChapter.content}
-              onChange={(value) =>
-                setNewChapter({ ...newChapter, content: value })
-              }
-              theme="snow"
-              className="w-full border-gray-300 dark:border-dark-700 rounded-lg  dark:bg-dark-800 text-gray-900 dark:text-white"
-              ref={quillRef}
-              //@ts-ignore
-              onContextMenu={handleContextMenu}
-            />
-            {contextMenu.visible && (
-              <div
-                className="dark:bg-[#1e293b] bg-white"
-                style={{
-                  position: "absolute",
-                  top: contextMenu.top + 400,
-                  left: contextMenu.left + 300,
-                  zIndex: 100,
-                  borderRadius: "15px",
-                  boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="flex flex-col">
-                  <button
-                    className="px-4 py-2 text-left flex items-center"
-                    onClick={() => handleActionSelect("explain")}
-                  >
-                    <BookOpen className="w-4 h-4 mr-2" />
-                    Explain
-                  </button>
-                  <button
-                    className="px-4 py-2 text-left flex items-center"
-                    onClick={() => handleActionSelect("improve")}
-                  >
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Improve Writing
-                  </button>
-                  <button
-                    className="px-4 py-2 text-left flex items-center"
-                    onClick={() => handleActionSelect("grammar")}
-                  >
-                    <SpellCheck className="w-4 h-4 mr-2" />
-                    Fix Grammar
-                  </button>
-                  <button
-                    className="px-4 py-2 text-left flex items-center"
-                    onClick={() => handleActionSelect("concise")}
-                  >
-                    <Pen className="w-4 h-4 mr-2" />
-                    Make Concise
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <div>
-              <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-4">
-                Chapter Image
-              </label>
-              <div className="space-y-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={imagePrompt}
-                    onChange={(e) => setImagePrompt(e.target.value)}
-                    placeholder="Enter prompt to generate image..."
-                    className="w-full px-4 py-3 border border-gray-200 dark:bg-dark-800 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <div className="flex space-x-2 mt-2">
+      <div className="space-y-15 flex flex-row w-full">
+        {/* Chapter List */}
+        <div
+          className={`space-y-4 ${
+            normalizedChapters.length > 0 ? "w-1/4" : "w-0"
+          }`}
+        >
+          {normalizedChapters.length > 0 && (
+            <>
+              {normalizedChapters.map((chapter: any) => (
+                <div
+                  key={chapter.id}
+                  className="bg-white dark:bg-dark-800 p-4 rounded-lg border border-gray-200 dark:border-dark-700 flex items-center justify-between"
+                >
+                  {chapter.content?.imgUrl && (
+                    <img
+                      src={chapter.content.imgUrl}
+                      alt={chapter.title}
+                      className="w-16 h-16 object-contain rounded mr-4 border"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                      {chapter.title}
+                    </h4>
+                    <p className="text-sm text-gray-500">{chapter.duration}</p>
+                  </div>
+                  {chapter.content?.audioUrl && (
+                    <audio controls className="w-36 mx-4">
+                      <source
+                        src={chapter.content.audioUrl}
+                        type="audio/mpeg"
+                      />
+                    </audio>
+                  )}
+                  <div className="flex items-center space-x-2">
                     <button
-                      type="button"
-                      //@ts-ignore
-                      onClick={generateImageUnsplash}
-                      disabled={!imagePrompt.trim() || isGenerating}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                      onClick={() => handleEditChapter(chapter.id)}
+                      className="p-2 text-gray-400 hover:text-blue-500"
                     >
-                      {isGenerating ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
-                      ) : (
-                        <Wand2 className="w-4 h-4" />
-                      )}
-                      Generate with Unsplash
+                      <Edit className="w-5 h-5" />
                     </button>
                     <button
-                      type="button"
-                      onClick={generateImageWithAI}
-                      disabled={!imagePrompt.trim() || isGeneratingAI}
-                      className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                      onClick={() => handleRemoveChapter(chapter.id)}
+                      className="p-2 text-gray-400 hover:text-red-500"
                     >
-                      {isGeneratingAI ? (
-                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
-                      ) : (
-                        <Wand2 className="w-4 h-4" />
-                      )}
-                      Generate with AI
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
-                  {newChapter.image ? (
-                    <div className="relative w-full max-w-xs">
-                      <div className="aspect-w-16 h-[200px]">
-                        <img
-                          src={newChapter.image}
-                          alt="Chapter preview"
-                          className="object-cover rounded-lg w-full h-full"
-                        />
-                      </div>
+              ))}
+            </>
+          )}
+        </div>
+        <div className={`${normalizedChapters.length > 0 ? "w-2/4" : "w-3/4"}`}>
+          <Toaster position="top-center" />
+          <div className="bg-gray-50 dark:bg-dark-800 p-6 rounded-lg">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+              {editingChapterId ? "Edit Chapter" : "Add New Chapter"}
+            </h3>
+            <div className="space-y-14">
+              <input
+                type="text"
+                value={newChapter.title}
+                onChange={(e) =>
+                  setNewChapter({ ...newChapter, title: e.target.value })
+                }
+                placeholder="Chapter Title"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
+              />
+              <div onContextMenu={handleContextMenu}>
+                <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Chapter Content
+                </label>
+                <ReactQuill
+                  style={{
+                    marginTop: "20px",
+                    marginBottom: "10px",
+                    height: "200px",
+                  }}
+                  value={newChapter.content}
+                  onChange={(value) =>
+                    setNewChapter({ ...newChapter, content: value })
+                  }
+                  theme="snow"
+                  className="w-full border-gray-300 dark:border-dark-700 rounded-lg  dark:bg-dark-800 text-gray-900 dark:text-white"
+                  ref={quillRef}
+                  //@ts-ignore
+                  onContextMenu={handleContextMenu}
+                />
+                {contextMenu.visible && (
+                  <div
+                    className="dark:bg-[#1e293b] bg-white"
+                    style={{
+                      position: "absolute",
+                      top: contextMenu.top + 400,
+                      left: contextMenu.left + 300,
+                      zIndex: 100,
+                      borderRadius: "15px",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <div className="flex flex-col">
                       <button
-                        type="button"
-                        onClick={() =>
-                          setNewChapter((prev) => ({ ...prev, image: "" }))
-                        }
-                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        className="px-4 py-2 text-left flex items-center"
+                        onClick={() => handleActionSelect("explain")}
                       >
-                        <X className="w-4 h-4" />
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        Explain
+                      </button>
+                      <button
+                        className="px-4 py-2 text-left flex items-center"
+                        onClick={() => handleActionSelect("improve")}
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Improve Writing
+                      </button>
+                      <button
+                        className="px-4 py-2 text-left flex items-center"
+                        onClick={() => handleActionSelect("grammar")}
+                      >
+                        <SpellCheck className="w-4 h-4 mr-2" />
+                        Fix Grammar
+                      </button>
+                      <button
+                        className="px-4 py-2 text-left flex items-center"
+                        onClick={() => handleActionSelect("concise")}
+                      >
+                        <Pen className="w-4 h-4 mr-2" />
+                        Make Concise
                       </button>
                     </div>
-                  ) : (
-                    <>
-                      {loading ? (
-                        <div className="flex justify-center items-center py-8">
-                          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
-                        </div>
-                      ) : (
-                        <div className="text-center">
-                          <Upload className="mx-auto h-12 w-12 text-gray-400 text-sm mb-4" />
-                          <div className="flex items-center gap-1 mb-1">
-                            <button
-                              //@ts-ignore
-                              onClick={() => imageInputRef.current?.click()}
-                              className="relative cursor-pointer text-sm bg-white dark:bg-dark-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                            >
-                              Upload a file
-                            </button>
-                            <input
-                              ref={imageInputRef}
-                              type="file"
-                              className="hidden"
-                              accept="image/*"
-                              onChange={handleImageChange}
-                              disabled={loading}
-                            />
-                            <p className="text-sm text-gray-500">
-                              or drag and drop
-                            </p>
-                          </div>
-                          <p className="text-xs text-gray-400 mt-1">
-                            PNG, JPG up to 5MB
-                          </p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Chapter Audio
-              </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
-                {loading2 && (
-                  <div className="flex justify-center items-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
                   </div>
                 )}
-                <div className="space-y-1 text-center">
-                  {newChapter.audio ? (
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    Chapter Image
+                  </label>
+                  <div className="space-y-4">
                     <div className="relative">
-                      <audio
-                        src={newChapter.audio}
-                        controls
-                        className="mx-auto"
+                      <input
+                        type="text"
+                        value={imagePrompt}
+                        onChange={(e) => setImagePrompt(e.target.value)}
+                        placeholder="Enter prompt to generate image..."
+                        className="w-full px-4 py-3 border border-gray-200 dark:bg-dark-800 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
-                      <button
-                        type="button"
-                        onClick={handleRemoveAudio}
-                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                      <div className="flex space-x-2 mt-2">
+                        <button
+                          type="button"
+                          //@ts-ignore
+                          onClick={generateImageUnsplash}
+                          disabled={!imagePrompt.trim() || isGenerating}
+                          className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isGenerating ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
+                          ) : (
+                            <Wand2 className="w-4 h-4" />
+                          )}
+                          Generate with Unsplash
+                        </button>
+                        <button
+                          type="button"
+                          onClick={generateImageWithAI}
+                          disabled={!imagePrompt.trim() || isGeneratingAI}
+                          className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                          {isGeneratingAI ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white border-solid"></div>
+                          ) : (
+                            <Wand2 className="w-4 h-4" />
+                          )}
+                          Generate with AI
+                        </button>
+                      </div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">
-                          Audio
-                        </label>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="file"
-                            accept="audio/*"
-                            onChange={handleAudioChange}
-                            className="hidden"
-                            ref={audioInputRef}
-                          />
-                          <button
-                            type="button"
-                            //@ts-ignore
-                            onClick={() => audioInputRef.current?.click()}
-                            className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded inline-flex items-center"
-                          >
-                            <Upload className="w-4 h-4 mr-2" />
-                            Upload Audio
-                          </button>
+                    <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
+                      {newChapter.image ? (
+                        <div className="relative w-full max-w-xs">
+                          <div className="aspect-w-16 h-[200px]">
+                            <img
+                              src={newChapter.image}
+                              alt="Chapter preview"
+                              className="object-cover rounded-lg w-full h-full"
+                            />
+                          </div>
                           <button
                             type="button"
                             onClick={() =>
-                              convertTextToSpeech(newChapter.content)
+                              setNewChapter((prev) => ({ ...prev, image: "" }))
                             }
-                            disabled={
-                              isConverting || !newChapter.content.trim()
-                            }
-                            className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center ${
-                              isConverting || !newChapter.content.trim()
-                                ? "opacity-50 cursor-not-allowed"
-                                : ""
-                            }`}
+                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                           >
-                            <Volume2 className="w-4 h-4 mr-2" />
-                            {isConverting
-                              ? "Converting..."
-                              : "Convert to Speech"}
+                            <X className="w-4 h-4" />
                           </button>
-                          {newChapter.audio && (
-                            <div className="flex items-center">
-                              <audio
-                                controls
-                                src={newChapter.audio}
-                                className="ml-2"
+                        </div>
+                      ) : (
+                        <>
+                          {loading ? (
+                            <div className="flex justify-center items-center py-8">
+                              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <Upload className="mx-auto h-12 w-12 text-gray-400 text-sm mb-4" />
+                              <div className="flex items-center gap-1 mb-1">
+                                <button
+                                  //@ts-ignore
+                                  onClick={() => imageInputRef.current?.click()}
+                                  className="relative cursor-pointer text-sm bg-white dark:bg-dark-800 rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                                >
+                                  Upload a file
+                                </button>
+                                <input
+                                  ref={imageInputRef}
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*"
+                                  onChange={handleImageChange}
+                                  disabled={loading}
+                                />
+                                <p className="text-sm text-gray-500">
+                                  or drag and drop
+                                </p>
+                              </div>
+                              <p className="text-xs text-gray-400 mt-1">
+                                PNG, JPG up to 5MB
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-md font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Chapter Audio
+                  </label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-dark-700 border-dashed rounded-lg relative bg-white dark:bg-dark-800">
+                    {loading2 && (
+                      <div className="flex justify-center items-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500 border-solid"></div>
+                      </div>
+                    )}
+                    <div className="space-y-1 text-center">
+                      {newChapter.audio ? (
+                        <div className="relative">
+                          <audio
+                            src={newChapter.audio}
+                            controls
+                            className="mx-auto"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleRemoveAudio}
+                            className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">
+                              Audio
+                            </label>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="file"
+                                accept="audio/*"
+                                onChange={handleAudioChange}
+                                className="hidden"
+                                ref={audioInputRef}
                               />
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setNewChapter((prev) => ({
-                                    ...prev,
-                                    audio: "",
-                                  }))
-                                }
-                                className="ml-2 text-red-500 hover:text-red-600"
+                                //@ts-ignore
+                                onClick={() => audioInputRef.current?.click()}
+                                className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded inline-flex items-center"
                               >
-                                <X className="w-4 h-4" />
+                                <Upload className="w-4 h-4 mr-2" />
+                                Upload Audio
                               </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  convertTextToSpeech(newChapter.content)
+                                }
+                                disabled={
+                                  isConverting || !newChapter.content.trim()
+                                }
+                                className={`bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded inline-flex items-center ${
+                                  isConverting || !newChapter.content.trim()
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : ""
+                                }`}
+                              >
+                                <Volume2 className="w-4 h-4 mr-2" />
+                                {isConverting
+                                  ? "Converting..."
+                                  : "Convert to Speech"}
+                              </button>
+                              {newChapter.audio && (
+                                <div className="flex items-center">
+                                  <audio
+                                    controls
+                                    src={newChapter.audio}
+                                    className="ml-2"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setNewChapter((prev) => ({
+                                        ...prev,
+                                        audio: "",
+                                      }))
+                                    }
+                                    className="ml-2 text-red-500 hover:text-red-600"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      </div>
-                    </>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Layout Selection */}
+              {/* <div className="space-y-2">
+                <label className="block text-md font-medium text-gray-700 dark:text-gray-300">
+                  Chapter Layout
+                </label>
+                <div className="flex items-center space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowLayoutSelector(true)}
+                    className="px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 flex items-center space-x-2"
+                  >
+                    <Layout className="w-5 h-5" />
+                    <span>
+                      {newChapter.layout ? "Change Layout" : "Select Layout"}
+                    </span>
+                  </button>
+                  {newChapter.layout && (
+                    <button
+                      type="button"
+                      onClick={() => setShowPreview(true)}
+                      className="px-4 py-2 text-blue-600 hover:text-blue-700"
+                    >
+                      Preview Layout
+                    </button>
                   )}
+                </div>
+              </div> */}
+              <input
+                type="text"
+                value={newChapter.duration}
+                onChange={(e) =>
+                  setNewChapter({ ...newChapter, duration: e.target.value })
+                }
+                placeholder="Duration (e.g., 15 mins)"
+                className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
+              />
+            </div>
+          </div>
+
+          {modal.visible && (
+            <div
+              className="dark:bg-[#1e293b] bg-white"
+              id="ai-response-modal"
+              style={{
+                position: "absolute",
+                top: modal.top + 425,
+                left: modal.left + 200,
+                zIndex: 1000,
+                borderRadius: "15px",
+                boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                border: "1px solid #e0e0e0",
+                width: "670px",
+                fontFamily: "Arial, sans-serif",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  padding: "12px 16px",
+                  borderBottom: "1px solid #e0e0e0",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <span style={{ fontWeight: "bold", fontSize: "15px" }}>
+                  AI Suggestion
+                </span>
+                <button
+                  onClick={() => setModal({ ...modal, visible: false })}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: "0",
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div
+                id="content-container"
+                style={{
+                  padding: "16px",
+                  fontSize: "14px",
+                  color: "dark:white",
+                }}
+                dangerouslySetInnerHTML={{ __html: modal.content }}
+              />
+
+              {/* Modal Footer */}
+              <div className="flex justify-between items-center mt-9">
+                <div className="flex space-x-3 mb-3">
+                  <button
+                    onClick={retryResponse}
+                    className="px-5 py-2 text-[#172b4d] dark:text-white dark:hover:bg-slate-700 hover:bg-gray-200 text-md"
+                  >
+                    <MdOutlineReplay size={20} />
+                  </button>
+                  <button
+                    onClick={handleCopy}
+                    className="px-1 py-1 text-[#172b4d]  dark:text-white dark:hover:bg-slate-700 hover:bg-gray-200 text-md"
+                  >
+                    <MdContentCopy size={20} />
+                  </button>
+                </div>
+                <div className="flex space-x-3 mr-5 mb-3">
+                  <button
+                    onClick={cancelResponse}
+                    className="hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-white text-md font-semibold text-[#192d4e] px-5 py-1 rounded-md"
+                  >
+                    Discard
+                  </button>
+                  <button
+                    onClick={insertResponse}
+                    className="bg-blue-600 text-md text-white font-semibold px-3 py-1 rounded-md border-4 border-white outline outline-3.5 outline-blue-500 shadow-md hover:bg-blue-800 transition duration-200"
+                  >
+                    Replace
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
-          {/* Layout Selection */}
-          <div className="space-y-2">
-            <label className="block text-md font-medium text-gray-700 dark:text-gray-300">
-              Chapter Layout
-            </label>
-            <div className="flex items-center space-x-4">
+          )}
+
+          {/* Layout Selector Modal */}
+          {showLayoutSelector && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-dark-800 rounded-xl p-6 w-full max-w-4xl">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Select Chapter Layout
+                  </h3>
+                  <button
+                    onClick={() => setShowLayoutSelector(false)}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Layout Preview Modal */}
+          {showPreview && (
+            <ChapterPreview
+              layout={newChapter.layout}
+              //@ts-ignore
+              layoutImage={newChapter.image}
+              layoutContent={newChapter.content}
+              layoutTitle={newChapter.title}
+              layoutAudio={newChapter.audio}
+              onClose={() => setShowPreview(false)}
+              onTitleChange={handleTitleChange}
+              onContentChange={handleContentChange}
+            />
+          )}
+
+          <ImageSelectionModal
+            open={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            images={generatedImages}
+            onSelectImage={handleImageSelect}
+            onLoadMore={handleLoadMore}
+            hasMore={hasMore}
+            loading={isGenerating}
+          />
+        </div>
+
+        <div className="w-1/4">
+          <div className=" bg-gray-50 dark:bg-dark-800">
+            {newChapter.layout && (
               <button
                 type="button"
-                onClick={() => setShowLayoutSelector(true)}
-                className="px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg hover:bg-gray-50 dark:hover:bg-dark-700 flex items-center space-x-2"
+                onClick={() => setShowPreview(true)}
+                className="px-4 py-2 text-blue-600 hover:text-blue-700"
               >
-                <Layout className="w-5 h-5" />
-                <span>
-                  {newChapter.layout ? "Change Layout" : "Select Layout"}
-                </span>
+                Preview Layout
               </button>
-              {newChapter.layout && (
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(true)}
-                  className="px-4 py-2 text-blue-600 hover:text-blue-700"
-                >
-                  Preview Layout
-                </button>
-              )}
-            </div>
+            )}
           </div>
-          <input
-            type="text"
-            value={newChapter.duration}
-            onChange={(e) =>
-              setNewChapter({ ...newChapter, duration: e.target.value })
-            }
-            placeholder="Duration (e.g., 15 mins)"
-            className="w-full px-4 py-2 border border-gray-300 dark:border-dark-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-dark-800 text-gray-900 dark:text-white"
+          <ChapterLayoutSelector
+            onClick={() => setShowPreview(true)}
+            selectedLayout={newChapter.layout}
+            onLayoutSelect={handleLayoutSelect}
+            layoutImage={newChapter.image}
+            layoutContent={newChapter.content}
+            layoutTitle={newChapter.title}
+            layoutAudio={newChapter.audio}
           />
         </div>
       </div>
@@ -1023,182 +1242,6 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
           </button>
         )}
       </div>
-
-      {modal.visible && (
-        <div
-          className="dark:bg-[#1e293b] bg-white"
-          id="ai-response-modal"
-          style={{
-            position: "absolute",
-            top: modal.top + 425,
-            left: modal.left + 200,
-            zIndex: 1000,
-            borderRadius: "15px",
-            boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-            border: "1px solid #e0e0e0",
-            width: "670px",
-            fontFamily: "Arial, sans-serif",
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div
-            style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid #e0e0e0",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <span style={{ fontWeight: "bold", fontSize: "15px" }}>
-              AI Suggestion
-            </span>
-            <button
-              onClick={() => setModal({ ...modal, visible: false })}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                padding: "0",
-              }}
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Modal Content */}
-          <div
-            id="content-container"
-            style={{
-              padding: "16px",
-              fontSize: "14px",
-              color: "dark:white",
-            }}
-            dangerouslySetInnerHTML={{ __html: modal.content }}
-          />
-
-          {/* Modal Footer */}
-          <div className="flex justify-between items-center mt-9">
-            <div className="flex space-x-3 mb-3">
-              <button
-                onClick={retryResponse}
-                className="px-5 py-2 text-[#172b4d] dark:text-white dark:hover:bg-slate-700 hover:bg-gray-200 text-md"
-              >
-                <MdOutlineReplay size={20} />
-              </button>
-              <button
-                onClick={handleCopy}
-                className="px-1 py-1 text-[#172b4d]  dark:text-white dark:hover:bg-slate-700 hover:bg-gray-200 text-md"
-              >
-                <MdContentCopy size={20} />
-              </button>
-            </div>
-            <div className="flex space-x-3 mr-5 mb-3">
-              <button
-                onClick={cancelResponse}
-                className="hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-white text-md font-semibold text-[#192d4e] px-5 py-1 rounded-md"
-              >
-                Discard
-              </button>
-              <button
-                onClick={insertResponse}
-                className="bg-blue-600 text-md text-white font-semibold px-3 py-1 rounded-md border-4 border-white outline outline-3.5 outline-blue-500 shadow-md hover:bg-blue-800 transition duration-200"
-              >
-                Replace
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Chapter List */}
-      <div className="space-y-4">
-        {normalizedChapters.map((chapter: any) => (
-          <div
-            key={chapter.id}
-            className="bg-white dark:bg-dark-800 p-4 rounded-lg border border-gray-200 dark:border-dark-700 flex items-center justify-between"
-          >
-            {chapter.content?.imgUrl && (
-              <img
-                src={chapter.content.imgUrl}
-                alt={chapter.title}
-                className="w-16 h-16 object-contain rounded mr-4 border"
-              />
-            )}
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                {chapter.title}
-              </h4>
-              <p className="text-sm text-gray-500">{chapter.duration}</p>
-            </div>
-            {chapter.content?.audioUrl && (
-              <audio controls className="w-36 mx-4">
-                <source src={chapter.content.audioUrl} type="audio/mpeg" />
-              </audio>
-            )}
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handleEditChapter(chapter.id)}
-                className="p-2 text-gray-400 hover:text-blue-500"
-              >
-                <Edit className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => handleRemoveChapter(chapter.id)}
-                className="p-2 text-gray-400 hover:text-red-500"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Layout Selector Modal */}
-      {showLayoutSelector && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-dark-800 rounded-xl p-6 w-full max-w-4xl">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Select Chapter Layout
-              </h3>
-              <button
-                onClick={() => setShowLayoutSelector(false)}
-                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <ChapterLayoutSelector
-              selectedLayout={newChapter.layout}
-              onLayoutSelect={handleLayoutSelect}
-              layoutImage={newChapter.image}
-              layoutAudio={newChapter.audio}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Layout Preview Modal */}
-      {showPreview && (
-        <ChapterPreview
-          layout={newChapter.layout}
-          //@ts-ignore
-          layoutImage={newChapter.image}
-          layoutAudio={newChapter.audio}
-          onClose={() => setShowPreview(false)}
-        />
-      )}
-
-      <ImageSelectionModal
-        open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        images={generatedImages}
-        onSelectImage={handleImageSelect}
-        onLoadMore={handleLoadMore}
-        hasMore={hasMore}
-        loading={isGenerating}
-      />
     </div>
   );
 };

@@ -19,9 +19,22 @@ import {
   CheckCircle,
   Clock,
   Home,
+  ChevronRight,
 } from "lucide-react";
-
 import { useTheme } from "../contexts/ThemeContext";
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  Toolbar,
+  Typography,
+  Box,
+  Divider,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 
 const menuItems = [
   {
@@ -30,12 +43,7 @@ const menuItems = [
     path: "/admin/dashboard",
     roles: ["SUPER_ADMIN"],
   },
-  {
-    title: "Dashboard",
-    icon: GraduationCap,
-    path: "/hr",
-    roles: ["MANAGER"],
-  },
+  { title: "Dashboard", icon: GraduationCap, path: "/hr", roles: ["MANAGER"] },
   {
     title: "Manage Users",
     icon: UserPlus,
@@ -54,12 +62,7 @@ const menuItems = [
     path: "/instructor",
     roles: ["INSTRUCTOR"],
   },
-  {
-    title: "Home",
-    icon: Home,
-    path: "/employee",
-    roles: ["EMPLOYEE"],
-  },
+  { title: "Home", icon: Home, path: "/employee", roles: ["EMPLOYEE"] },
   {
     title: "Completed Courses",
     icon: CheckCircle,
@@ -67,7 +70,7 @@ const menuItems = [
     roles: ["EMPLOYEE"],
   },
   {
-    title: "Pending courses",
+    title: "Pending Courses",
     icon: Clock,
     path: "/employee/pending-courses",
     roles: ["EMPLOYEE"],
@@ -93,124 +96,183 @@ const menuItems = [
 ];
 
 const AdminLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  //@ts-ignore
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
   const { theme, toggleTheme } = useTheme();
-
-  useEffect(() => {
-    const handlePresentationMode = () => {
-      const isPresentationMode =
-        sessionStorage.getItem("presentationMode") === "true";
-      setSidebarOpen(!isPresentationMode);
-    };
-
-    handlePresentationMode();
-
-    const customEventName = "presentationModeChange";
-    window.addEventListener(customEventName, handlePresentationMode);
-
-    return () => {
-      window.removeEventListener(customEventName, handlePresentationMode);
-    };
-  }, []);
-
-  const handleLogout = () => {
-    signout();
-    setUserMenuOpen(false);
-    navigate("/");
-  };
   const user = useSelector((state: any) => state.auth.user);
   const userRole = user?.role || "GUEST";
 
-  return (
-    <div className="flex bg-gray-60 dark:bg-dark-900 min-h-screen">
-      <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-800 border-r border-gray-200 dark:border-dark-700 transform transition-transform duration-200 ease-in-out ${
-          sidebarOpen && sessionStorage.getItem("presentationMode") !== "true"
-            ? "translate-x-0"
-            : "-translate-x-full"
-        } lg:${
-          sessionStorage.getItem("presentationMode") === "true"
-            ? "-translate-x-full"
-            : "translate-x-0"
-        } lg:static flex-shrink-0 flex flex-col`}
-      >
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-dark-700">
-          <span className="text-xl font-semibold text-gray-800 dark:text-white">
-            Elevatics360
-          </span>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+  const toggleSidebar = () => {
+    setSidebarExpanded(!sidebarExpanded);
+  };
 
-        <nav className="flex-1 p-4 space-y-1">
+  const handleMouseEnter = () => {
+    if (!sidebarExpanded) {
+      setSidebarHovered(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!sidebarExpanded) {
+      setSidebarHovered(false);
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        minHeight: "100vh",
+        bgcolor: "background.default",
+      }}
+    >
+      {/* Sidebar */}
+      <Drawer
+        variant="permanent"
+        open={sidebarExpanded || sidebarHovered}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        sx={{
+          width: sidebarExpanded || sidebarHovered ? "20%" : 80,
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            width: sidebarExpanded || sidebarHovered ? "20%" : 80,
+            boxSizing: "border-box",
+            // transition: "width 0.1s ease-in-out",
+            overflowX: "hidden",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
+      >
+        <Toolbar>
+          {(sidebarExpanded || sidebarHovered) && (
+            <Typography variant="h6" noWrap component="div">
+              Elevatics360
+            </Typography>
+          )}
+        </Toolbar>
+        <Divider />
+        <List sx={{ flexGrow: 1 }}>
           {menuItems
             .filter((item) => item.roles.includes(userRole))
             .map((item) => {
               const Icon = item.icon;
               return (
-                <NavLink
+                <ListItem
+                  button
                   key={item.path}
+                  component={NavLink}
                   to={item.path}
-                  end
-                  className={({ isActive }) => {
-                    return `flex items-center px-4 py-3 text-sm font-medium rounded-lg ${
-                      isActive
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                        : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700"
-                    }`;
+                  sx={{
+                    px: 2.5,
+                    py: 1.5,
+                    borderRadius: 2,
+                    "&.active": {
+                      bgcolor: "primary.light",
+                      color: "primary.main",
+                    },
+                    "&:hover": {
+                      bgcolor: "action.hover",
+                    },
                   }}
                 >
-                  <Icon className="w-5 h-5 mr-3" />
-                  {item.title}
-                </NavLink>
+                  <ListItemIcon sx={{ minWidth: 40, py: 1 }}>
+                    <Icon size={20} />
+                  </ListItemIcon>
+                  {(sidebarExpanded || sidebarHovered) && (
+                    <ListItemText primary={item.title} sx={{ opacity: 1 }} />
+                  )}
+                </ListItem>
               );
             })}
-        </nav>
-
-        <div className="border-t border-gray-200 dark:border-dark-700 p-4">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-              <User className="w-5 h-5 text-gray-600" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {user?.username || "Guest User"}
-              </p>
-            </div>
-            <button
-              onClick={toggleTheme}
-              className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg"
-            >
-              {theme === "dark" ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
+        </List>
+        <Box sx={{ mt: "auto" }}>
+          <Divider />
+          <Box sx={{ p: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 20,
+                  borderRadius: "50%",
+                  bgcolor: "grey.300",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <User size={20} />
+              </Box>
+              {(sidebarExpanded || sidebarHovered) && (
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Typography variant="body1" sx={{ fontWeight: "medium" }}>
+                    {user?.username || "Guest User"}
+                  </Typography>
+                  <IconButton
+                    onClick={toggleTheme}
+                    sx={{ color: "text.primary" }}
+                  >
+                    {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                  </IconButton>
+                </Box>
               )}
-            </button>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 rounded-lg"
-          >
-            <LogOut className="w-4 h-4 mr-3" />
-            Sign out
-          </button>
-        </div>
-      </div>
-      <div className="flex-1 flex flex-col">
-        <main className="p-4 lg:p-8 dark:bg-dark-900">
-          <Outlet />
-        </main>
-      </div>
-    </div>
+            </Box>
+            {!(sidebarExpanded || sidebarHovered) && (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  mt: 1,
+                }}
+              >
+                <IconButton
+                  onClick={toggleTheme}
+                  sx={{ color: "text.primary" }}
+                >
+                  {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                </IconButton>
+                <IconButton onClick={signout} sx={{ color: "text.primary" }}>
+                  <LogOut size={20} />
+                </IconButton>
+              </Box>
+            )}
+            {(sidebarExpanded || sidebarHovered) && (
+              <Box sx={{ mt: 2 }}>
+                <IconButton onClick={signout} sx={{ color: "text.primary" }}>
+                  <LogOut size={20} />
+                  <Typography variant="body2" sx={{ ml: 1 }}>
+                    Sign out
+                  </Typography>
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      </Drawer>
+
+      {/* Main Content */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          px: 3,
+        }}
+      >
+        <Toolbar />
+        <Outlet />
+      </Box>
+    </Box>
   );
 };
 

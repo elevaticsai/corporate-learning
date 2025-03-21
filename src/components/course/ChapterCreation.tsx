@@ -161,6 +161,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     const chapterToEdit = normalizedChapters.find(
       (chapter: any) => chapter.id === id
     );
+
     if (chapterToEdit) {
       setEditingChapterId(id);
       setNewChapter({
@@ -169,7 +170,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
         duration: chapterToEdit.duration || "",
         image: chapterToEdit.content?.imgUrl || "",
         audio: chapterToEdit.content?.audioUrl || "",
-        layout: chapterToEdit.template || "", // Set layout
+        layout: chapterToEdit.layout || "", // Set layout
       });
     }
   };

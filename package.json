@@ -12,6 +12,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
+    "@hello-pangea/dnd": "^18.0.1",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.17.1",
     "@radix-ui/react-tabs": "^1.0.4",
@@ -36,6 +37,7 @@
     "react-quill": "^2.0.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.22.3",
+    "react-sortable-hoc": "^2.0.0",
     "react-toastify": "^11.0.3",
     "recharts": "^2.12.2",
     "uuid": "^11.1.0",

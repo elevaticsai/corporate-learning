@@ -11,6 +11,7 @@ import {
   BookOpen,
   Wand2,
   Volume2,
+  MoreVertical,
 } from "lucide-react";
 //@ts-ignore
 import { uploadImage } from "../../utils/api.js";
@@ -24,8 +25,46 @@ import { MdContentCopy, MdOutlineReplay } from "react-icons/md";
 import ImageSelectionModal from "../common/ImageSelectionModal";
 import toast, { Toaster } from "react-hot-toast";
 import DOMPurify from "dompurify";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { GripVertical } from "lucide-react";
 
 const ChapterCreation = ({ chapters, onUpdate }: any) => {
+  const onDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const items = Array.from(normalizedChapters);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    onUpdate(items);
+  };
+  // State to manage the dropdown menu for each chapter
+  const [dropdownOpen, setDropdownOpen] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+
+  // Toggle dropdown for a specific chapter
+  const toggleDropdown = (chapterId: string) => {
+    setDropdownOpen((prev) => ({
+      ...prev,
+      [chapterId]: !prev[chapterId],
+    }));
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!(event.target as HTMLElement).closest(".dropdown-menu")) {
+        setDropdownOpen({});
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const [newChapter, setNewChapter] = useState({
     title: "",
     content: "",
@@ -170,7 +209,7 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
         duration: chapterToEdit.duration || "",
         image: chapterToEdit.content?.imgUrl || "",
         audio: chapterToEdit.content?.audioUrl || "",
-        layout: chapterToEdit.layout || "", // Set layout
+        layout: chapterToEdit.template || chapterToEdit.layout, // Set layout
       });
     }
   };
@@ -695,58 +734,116 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     <div className="space-y-15">
       <div className="space-y-15 flex flex-row w-full">
         {/* Chapter List */}
-        <div
-          className={`space-y-4 ${
-            normalizedChapters.length > 0 ? "w-1/4" : "w-0"
-          }`}
-        >
-          {normalizedChapters.length > 0 && (
-            <>
-              {normalizedChapters.map((chapter: any) => (
-                <div
-                  key={chapter.id}
-                  className="bg-white dark:bg-dark-800 p-4 rounded-lg border border-gray-200 dark:border-dark-700 flex items-center justify-between"
-                >
-                  {chapter.content?.imgUrl && (
-                    <img
-                      src={chapter.content.imgUrl}
-                      alt={chapter.title}
-                      className="w-16 h-16 object-contain rounded mr-4 border"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                      {chapter.title}
-                    </h4>
-                    <p className="text-sm text-gray-500">{chapter.duration}</p>
-                  </div>
-                  {chapter.content?.audioUrl && (
-                    <audio controls className="w-36 mx-4">
-                      <source
-                        src={chapter.content.audioUrl}
-                        type="audio/mpeg"
-                      />
-                    </audio>
-                  )}
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleEditChapter(chapter.id)}
-                      className="p-2 text-gray-400 hover:text-blue-500"
-                    >
-                      <Edit className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleRemoveChapter(chapter.id)}
-                      className="p-2 text-gray-400 hover:text-red-500"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="chapters">
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className={`space-y-4  ${
+                  normalizedChapters.length > 0 ? "w-1/4" : "w-0"
+                }`}
+              >
+                {normalizedChapters.length > 0 && (
+                  <>
+                    {normalizedChapters.map((chapter: any, index: number) => (
+                      <Draggable
+                        key={chapter.id.toString()}
+                        draggableId={chapter.id.toString()}
+                        index={index}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`bg-white dark:bg-dark-800 p-4 rounded-lg border border-gray-200 dark:border-dark-700 flex items-center justify-between ${
+                              snapshot.isDragging ? "shadow-lg bg-blue-50" : ""
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 flex-1">
+                              <GripVertical className="w-5 h-5 text-gray-400" />
+                              {chapter.content?.imgUrl && (
+                                <img
+                                  src={chapter.content.imgUrl}
+                                  alt={chapter.title}
+                                  className="w-16 h-16 object-contain rounded mr-4 border"
+                                />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                                  {chapter.title}
+                                </h4>
+                                <p className="text-sm text-gray-500">
+                                  {chapter.duration}
+                                </p>
+                              </div>
+                              {/* {chapter.content?.audioUrl && (
+                                <audio controls className="w-36 mx-4">
+                                  <source
+                                    src={chapter.content.audioUrl}
+                                    type="audio/mpeg"
+                                  />
+                                </audio>
+                              )} */}
+                            </div>
+
+                            {/* Three-dot menu */}
+                            <div className="relative">
+                              <button
+                                onClick={() => toggleDropdown(chapter.id)}
+                                className="p-2 text-gray-400 hover:text-gray-600"
+                              >
+                                <MoreVertical className="w-5 h-5" />
+                              </button>
+
+                              {/* Dropdown menu */}
+                              {dropdownOpen[chapter.id] && (
+                                <div className="dropdown-menu absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-lg shadow-lg border border-gray-200 dark:border-dark-700 z-50">
+                                  <button
+                                    onClick={() => {
+                                      handleEditChapter(chapter.id);
+                                      setDropdownOpen({});
+                                    }}
+                                    className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 flex items-center gap-2"
+                                  >
+                                    <Edit className="w-4 h-4" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleRemoveChapter(chapter.id);
+                                      setDropdownOpen({});
+                                    }}
+                                    className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 flex items-center gap-2"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                    Delete
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      // Handle audio option (e.g., open audio upload modal)
+                                      setDropdownOpen({});
+                                    }}
+                                    className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 flex items-center gap-2"
+                                  >
+                                    <Volume2 className="w-4 h-4" />
+                                    Audio
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                  </>
+                )}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
         <div className={`${normalizedChapters.length > 0 ? "w-2/4" : "w-3/4"}`}>
           <Toaster position="top-center" />
           <div className="bg-gray-50 dark:bg-dark-800 p-6 rounded-lg">

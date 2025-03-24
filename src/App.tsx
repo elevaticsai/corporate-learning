@@ -104,14 +104,8 @@ function App() {
               <Route path="hr" element={<HRDashboard />} />
               <Route path="hr/user-management" element={<UserManagement />} />
               <Route path="employee" element={<EmployeeDashboard />} />
-              <Route
-                path="employee/completed-courses"
-                element={<CompletedCourses />}
-              />
-              <Route
-                path="employee/pending-courses"
-                element={<PendingCourses />}
-              />
+              <Route path="/completed-courses" element={<CompletedCourses />} />
+              <Route path="/pending-courses" element={<PendingCourses />} />
               <Route path="instructor" element={<InstructorDashboard />} />
               <Route path="training/:id" element={<TrainingDetails />} />
               <Route path="courses/create" element={<CreateCourse />} />

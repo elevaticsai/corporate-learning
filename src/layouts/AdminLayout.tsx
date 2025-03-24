@@ -66,13 +66,13 @@ const menuItems = [
   {
     title: "Completed Courses",
     icon: CheckCircle,
-    path: "/employee/completed-courses",
+    path: "/completed-courses",
     roles: ["EMPLOYEE"],
   },
   {
     title: "Pending Courses",
     icon: Clock,
-    path: "/employee/pending-courses",
+    path: "/pending-courses",
     roles: ["EMPLOYEE"],
   },
   {
@@ -155,7 +155,9 @@ const AdminLayout = () => {
           )}
         </Toolbar>
         <Divider />
-        <List sx={{ flexGrow: 1 }}>
+        <List
+          sx={{ flexGrow: 1, fontFamily: "Your Font Family, ui-sans-serif" }}
+        >
           {menuItems
             .filter((item) => item.roles.includes(userRole))
             .map((item) => {
@@ -169,6 +171,7 @@ const AdminLayout = () => {
                   sx={{
                     px: 2.5,
                     py: 1.5,
+                    fontFamily: "ui-sans-serif",
                     borderRadius: 2,
                     "&.active": {
                       bgcolor: "primary.light",
@@ -183,7 +186,13 @@ const AdminLayout = () => {
                     <Icon size={20} />
                   </ListItemIcon>
                   {(sidebarExpanded || sidebarHovered) && (
-                    <ListItemText primary={item.title} sx={{ opacity: 1 }} />
+                    <ListItemText
+                      primary={item.title}
+                      sx={{
+                        opacity: 1,
+                        fontFamily: " ui-sans-serif, system-ui",
+                      }}
+                    />
                   )}
                 </ListItem>
               );

@@ -149,14 +149,25 @@ const AdminLayout = () => {
       >
         <Toolbar>
           {(sidebarExpanded || sidebarHovered) && (
-            <Typography variant="h6" noWrap component="div">
+            <Typography
+              variant="h6"
+              noWrap
+              component="div"
+              sx={{
+                fontFamily:
+                  '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+              }}
+            >
               Elevatics360
             </Typography>
           )}
         </Toolbar>
         <Divider />
         <List
-          sx={{ flexGrow: 1, fontFamily: "Your Font Family, ui-sans-serif" }}
+          sx={{
+            flexGrow: 1,
+            fontFamily: "ui-sans-serif, system-ui, sans-serif !important",
+          }}
         >
           {menuItems
             .filter((item) => item.roles.includes(userRole))
@@ -171,7 +182,8 @@ const AdminLayout = () => {
                   sx={{
                     px: 2.5,
                     py: 1.5,
-                    fontFamily: "ui-sans-serif",
+                    fontFamily:
+                      '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
                     borderRadius: 2,
                     "&.active": {
                       bgcolor: "primary.light",
@@ -190,7 +202,10 @@ const AdminLayout = () => {
                       primary={item.title}
                       sx={{
                         opacity: 1,
-                        fontFamily: " ui-sans-serif, system-ui",
+                        "& .MuiTypography-root": {
+                          fontFamily:
+                            "ui-sans-serif, system-ui, sans-serif !important",
+                        },
                       }}
                     />
                   )}
@@ -211,6 +226,8 @@ const AdminLayout = () => {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  fontFamily:
+                    '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
                 }}
               >
                 <User size={20} />
@@ -224,7 +241,14 @@ const AdminLayout = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <Typography variant="body1" sx={{ fontWeight: "medium" }}>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: "medium",
+                      fontFamily:
+                        '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+                    }}
+                  >
                     {user?.username || "Guest User"}
                   </Typography>
                   <IconButton
@@ -247,7 +271,11 @@ const AdminLayout = () => {
               >
                 <IconButton
                   onClick={toggleTheme}
-                  sx={{ color: "text.primary" }}
+                  sx={{
+                    color: "text.primary",
+                    fontFamily:
+                      '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+                  }}
                 >
                   {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
                 </IconButton>
@@ -260,7 +288,14 @@ const AdminLayout = () => {
               <Box sx={{ mt: 2 }}>
                 <IconButton onClick={signout} sx={{ color: "text.primary" }}>
                   <LogOut size={20} />
-                  <Typography variant="body2" sx={{ ml: 1 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      ml: 1,
+                      fontFamily:
+                        '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+                    }}
+                  >
                     Sign out
                   </Typography>
                 </IconButton>

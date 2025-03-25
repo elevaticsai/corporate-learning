@@ -1617,25 +1617,6 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
             </div>
           )}
 
-          {showMediaOptions && (
-            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-800 rounded-lg shadow-lg border border-gray-200 dark:border-dark-700 z-50">
-              <button
-                onClick={() => handleMediaOptionSelect("image")}
-                className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 flex items-center gap-2"
-              >
-                <Image className="w-4 h-4" />
-                Add Image
-              </button>
-              <button
-                onClick={() => handleMediaOptionSelect("audio")}
-                className="w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-700 flex items-center gap-2"
-              >
-                <Volume2 className="w-4 h-4" />
-                Add Audio
-              </button>
-            </div>
-          )}
-
           {/* Layout Preview Modal */}
           {showPreview && (
             <ChapterPreview

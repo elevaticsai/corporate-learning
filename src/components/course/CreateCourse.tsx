@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import BasicInfo from "./BasicInfo";
 import ChapterCreation from "./ChapterCreation";
 import QuizCreation from "./QuizCreation";
+import DOMPurify from "dompurify";
 import {
   createModule,
   loginIntsructor,
@@ -94,7 +95,10 @@ const CreateCourse = () => {
       const token = await loginIntsructor();
       const moduleData = {
         title: courseData.basicInfo.title,
-        description: courseData.basicInfo.description,
+        // description: courseData.basicInfo.description,
+        description: DOMPurify.sanitize(courseData.basicInfo.description, {
+          ALLOWED_TAGS: [],
+        }),
         category: courseData.basicInfo.category,
         chapters: courseData.chapters.map((chapter, chapterIndex) => ({
           title: chapter.title,
@@ -109,7 +113,10 @@ const CreateCourse = () => {
           subChapters:
             chapter.subChapters?.map((subChapter, subChapterIndex) => ({
               title: subChapter.title,
-              description: subChapter.description,
+              // description: subChapter.description,
+              description: DOMPurify.sanitize(subChapter.description, {
+                ALLOWED_TAGS: [],
+              }),
               order: subChapterIndex + 1,
               content: {
                 imgUrl: subChapter.content?.imgUrl || subChapter.image || "",

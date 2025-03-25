@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Text,
 } from "lucide-react";
 
 export type ChapterLayout = {
@@ -17,6 +18,7 @@ export type ChapterLayout = {
   name: string;
   description: string;
   preview: string;
+  icon: React.ReactNode;
 };
 
 export const chapterLayouts: ChapterLayout[] = [
@@ -26,6 +28,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Image on the left side with title and content on the right",
     preview:
       "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&q=60",
+    icon: <ImageIcon className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout2",
@@ -33,6 +36,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Image on the right side with title and content on the left",
     preview:
       "https://images.unsplash.com/photo-1593720219276-0b1eacd0aef4?w=800&auto=format&fit=crop&q=60",
+    icon: <ImageIcon className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout3",
@@ -40,6 +44,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Full background image with content in a white card overlay",
     preview:
       "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=800&auto=format&fit=crop&q=60",
+    icon: <Layout className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout4",
@@ -47,6 +52,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Centered heading with full-width image and content below",
     preview:
       "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=60",
+    icon: <Layout className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout5",
@@ -54,6 +60,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Full-width image at the top with content below",
     preview:
       "https://images.unsplash.com/photo-1527474305487-b87b222841cc?w=800&auto=format&fit=crop&q=60",
+    icon: <ImageIcon className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout6",
@@ -61,6 +68,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Content at the top with full-width image below",
     preview:
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop&q=60",
+    icon: <ImageIcon className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout7",
@@ -68,6 +76,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Bold statement with minimal supporting text",
     preview:
       "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=60",
+    icon: <Text className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout8",
@@ -75,6 +84,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Bold statement with minimal supporting text",
     preview:
       "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=60",
+    icon: <Text className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout9",
@@ -82,6 +92,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Bold statement with minimal supporting text",
     preview:
       "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=60",
+    icon: <Text className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout10",
@@ -89,6 +100,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Bold statement with minimal supporting text",
     preview:
       "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=60",
+    icon: <Text className="w-5 h-5 text-gray-400" />,
   },
   {
     id: "layout11",
@@ -96,6 +108,7 @@ export const chapterLayouts: ChapterLayout[] = [
     description: "Highlight key information with dramatic typography",
     preview:
       "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&auto=format&fit=crop&q=60",
+    icon: <Text className="w-5 h-5 text-gray-400" />,
   },
 ];
 
@@ -131,7 +144,7 @@ export const ChapterLayoutSelector: React.FC<ChapterLayoutSelectorProps> = ({
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Dropdown Layout Selector */}
       {/* <div className="relative">
         <button
@@ -212,7 +225,7 @@ export const ChapterLayoutSelector: React.FC<ChapterLayoutSelectorProps> = ({
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
           Layout Preview
         </h3>
-        <div className="h-[1000px] overflow-y-auto space-y-4 pr-2">
+        <div className="h-[400px] overflow-y-auto space-y-4 pr-2">
           {chapterLayouts.map((layout) => (
             <div
               key={layout.id}

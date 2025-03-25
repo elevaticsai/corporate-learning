@@ -89,26 +89,35 @@ const CreateCourse = () => {
   };
 
   const handleSaveCourse = async () => {
-    console.log(courseData, "courseData");
     setIsLoading(true);
     try {
       const token = await loginIntsructor();
       const moduleData = {
         title: courseData.basicInfo.title,
         description: courseData.basicInfo.description,
-        imgUrl: courseData.basicInfo.image,
         category: courseData.basicInfo.category,
-        // layout: courseData.layout,  // ✅ Added layout field
-        chapters: courseData.chapters.map((chapter, index) => ({
+        chapters: courseData.chapters.map((chapter, chapterIndex) => ({
           title: chapter.title,
           description: chapter.description,
-          order: index + 1,
-          template: chapter.layout ? chapter.layout : chapter.template,
+          order: chapterIndex + 1,
+          template: chapter.template || "simple",
           content: {
             imgUrl: chapter.content?.imgUrl || chapter.image || "",
             audioUrl: chapter.content?.audioUrl || chapter.audio || "",
-            videoUrl: chapter.content?.videoUrl || "www.google.com",
+            videoUrl: chapter.content?.videoUrl || "",
           },
+          subChapters:
+            chapter.subChapters?.map((subChapter, subChapterIndex) => ({
+              title: subChapter.title,
+              description: subChapter.description,
+              order: subChapterIndex + 1,
+              content: {
+                imgUrl: subChapter.content?.imgUrl || subChapter.image || "",
+                audioUrl:
+                  subChapter.content?.audioUrl || subChapter.audio || "",
+                videoUrl: subChapter.content?.videoUrl || "",
+              },
+            })) || [],
         })),
         questions: courseData.quizzes.map((quiz, index) => ({
           title: quiz.title || "Test title",
@@ -125,10 +134,10 @@ const CreateCourse = () => {
         ? await updateModule(token, moduleId, moduleData)
         : await createModule(token, moduleData);
 
-      setSuccessMessage(true); // Show success popup
+      setSuccessMessage(true);
 
       setTimeout(() => {
-        setSuccessMessage(false); // Hide message after 3 seconds
+        setSuccessMessage(false);
         // navigate("/instructor");
       }, 3000);
     } catch (error) {

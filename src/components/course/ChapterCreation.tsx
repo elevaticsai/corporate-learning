@@ -1004,8 +1004,8 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
                                     {chapter.subChapters.map(
                                       (subChapter: any, subIndex: number) => (
                                         <Draggable
-                                          key={subChapter.id.toString()}
-                                          draggableId={subChapter.id.toString()}
+                                          key={subChapter?.id?.toString()}
+                                          draggableId={subChapter?.id?.toString()}
                                           index={subIndex}
                                         >
                                           {(subProvided, subSnapshot) => (

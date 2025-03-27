@@ -38,6 +38,19 @@ import toast, { Toaster } from "react-hot-toast";
 import DOMPurify from "dompurify";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { GripVertical } from "lucide-react";
+// Consider standardizing your data structure:
+interface Chapter {
+  id: string;
+  title: string;
+  description: string; // Always use this field for content
+  duration?: string;
+  content?: {
+    imgUrl?: string;
+    audioUrl?: string;
+  };
+  layout: string;
+  subChapters?: Chapter[];
+}
 
 const ChapterCreation = ({ chapters, onUpdate }: any) => {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
@@ -100,6 +113,8 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
   });
 
   const [editingChapterId, setEditingChapterId] = useState(null);
+  console.log(editingChapterId);
+
   const [loading, setLoading] = useState(false);
   const [loading2, setLoading2] = useState(false);
   const [showLayoutSelector, setShowLayoutSelector] = useState(false);
@@ -137,11 +152,11 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
   const normalizedChapters = (chapters || []).map((chapter: any) => ({
     ...chapter,
-    id: chapter.id || chapter._id || Date.now().toString(), // Ensure there's always an ID
-    content: chapter.content || {
-      imgUrl: chapter.image || "",
-      audioUrl: chapter.audio || "",
-    },
+    id: chapter.id || chapter._id, // Standardize on 'id'
+    subChapters: (chapter.subChapters || []).map((subChapter: any) => ({
+      ...subChapter,
+      id: subChapter.id || subChapter._id, // Standardize subchapter IDs
+    })),
   }));
 
   const handleTitleChange = (newTitle: string) => {
@@ -298,37 +313,69 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
     }
   };
 
-  const handleEditChapter = (id: any) => {
+  const handleEditChapter = (id: string) => {
+    if (!id) {
+      console.error("No ID provided for editing");
+      return;
+    }
+
     // First check main chapters
     let chapterToEdit = normalizedChapters.find(
-      (chapter: any) => chapter.id === id
+      (chapter: any) => chapter.id === id || chapter._id === id
     );
+
+    let isSubChapter = false;
+    let parentId = null;
 
     // If not found in main chapters, check sub-chapters
     if (!chapterToEdit) {
       for (const chapter of normalizedChapters) {
-        const subChapter = chapter.subChapters?.find((sc: any) => sc.id === id);
+        const subChapter = chapter.subChapters?.find(
+          (sc: any) => sc.id === id || sc._id === id
+        );
         if (subChapter) {
           chapterToEdit = subChapter;
-          setIsAddingSubChapter(true);
-          setParentChapterId(chapter.id);
+          isSubChapter = true;
+          parentId = chapter.id || chapter._id;
           break;
         }
       }
     }
 
-    if (chapterToEdit) {
-      setEditingChapterId(id);
-      setNewChapter({
-        title: chapterToEdit.title,
-        content: chapterToEdit.description || "",
-        duration: chapterToEdit.duration || "",
-        image: chapterToEdit.content?.imgUrl || "",
-        audio: chapterToEdit.content?.audioUrl || "",
-        layout: chapterToEdit.layout || chapterToEdit.template || "",
-      });
+    if (!chapterToEdit) {
+      console.error("No chapter found with ID:", id);
+      return;
     }
+
+    console.log("Editing chapter:", {
+      id,
+      isSubChapter,
+      parentId,
+      chapterToEdit,
+    });
+
+    // Set all state updates in one batch
+    setEditingChapterId(chapterToEdit.id || chapterToEdit._id);
+    setIsAddingSubChapter(isSubChapter);
+    setParentChapterId(parentId);
+
+    // Create a complete new chapter object to prevent partial updates
+    const updatedChapter = {
+      title: chapterToEdit.title || "",
+      content: chapterToEdit.description || "",
+      duration: chapterToEdit.duration || "",
+      image: chapterToEdit.content?.imgUrl || "",
+      audio: chapterToEdit.content?.audioUrl || "",
+      layout: chapterToEdit.layout || chapterToEdit.template || "",
+    };
+
+    console.log("Setting chapter state:", updatedChapter);
+    setNewChapter((prev) => ({
+      ...prev, // Keep any existing state
+      ...updatedChapter, // Apply the updates
+    }));
   };
+  console.log(newChapter);
 
   const handleCancelEdit = () => {
     setEditingChapterId(null);
@@ -1023,15 +1070,15 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
                                                   className="w-4 h-4 text-gray-400 flex-shrink-0"
                                                   {...subProvided.dragHandleProps}
                                                 />
-                                                {chapter.content?.imgUrl && (
+                                                {subChapter.content?.imgUrl ? (
                                                   <img
                                                     src={
                                                       subChapter.content.imgUrl
                                                     }
-                                                    alt={subChapter.title}
                                                     className="w-16 h-16 object-contain rounded mr-4 border flex-shrink-0"
+                                                    alt={subChapter.title}
                                                   />
-                                                )}
+                                                ) : null}
 
                                                 <div className="flex-1 min-w-0">
                                                   <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate text-sm">
@@ -1047,11 +1094,12 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
                                               <div className="flex space-x-1">
                                                 <button
-                                                  onClick={() => {
+                                                  onClick={() =>
                                                     handleEditChapter(
-                                                      subChapter.id
-                                                    );
-                                                  }}
+                                                      subChapter.id ||
+                                                        subChapter._id
+                                                    )
+                                                  }
                                                   className="text-blue-500 hover:text-blue-700 p-1"
                                                 >
                                                   <Edit className="w-3 h-3" />
@@ -1136,14 +1184,17 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
                     height: "200px",
                   }}
                   value={newChapter.content}
-                  onChange={(value) =>
-                    setNewChapter({ ...newChapter, content: value })
-                  }
+                  onChange={(value) => {
+                    // Ensure we're properly handling HTML content
+                    const cleanedValue = DOMPurify.sanitize(value);
+                    setNewChapter({ ...newChapter, content: cleanedValue });
+                  }}
                   theme="snow"
                   className="w-full border-gray-300 dark:border-dark-700 rounded-lg  dark:bg-dark-800 text-gray-900 dark:text-white"
                   ref={quillRef}
                   //@ts-ignore
                   onContextMenu={handleContextMenu}
+                  key={editingChapterId || "new-chapter"}
                 />
                 {contextMenu.visible && (
                   <div

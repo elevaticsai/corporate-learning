@@ -304,18 +304,14 @@ const AudioControls: React.FC<AudioControlsProps> = ({
   onPlayPause,
 }) => {
   return (
-    <div className="absolute top-4 right-4 flex items-center space-x-2 bg-white/90 dark:bg-dark-700 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-      <button
-        onClick={onPlayPause}
-        className="text-blue-600 hover:text-blue-700 transition-colors"
-      >
+    <div className="absolute top-15 right-10 flex items-center space-x-2 bg-white/90 dark:bg-dark-700 backdrop-blur-sm rounded-xl px-1 h-7  shadow-lg">
+      <button onClick={onPlayPause}>
         {isPlaying ? (
           <Pause className="w-5 h-5" />
         ) : (
           <Volume2 className="w-5 h-5" />
         )}
       </button>
-      <span className="text-sm text-blue-600 font-medium">Audio</span>
     </div>
   );
 };
@@ -327,6 +323,7 @@ interface ChapterContentProps {
   image?: string;
   video?: string;
   audio?: string;
+  editable?: boolean; // Add this flag
   onTitleChange?: (newTitle: string) => void;
   onContentChange?: (newContent: string) => void;
 }
@@ -338,6 +335,7 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
   image,
   video,
   audio,
+  editable = false,
   onTitleChange,
   onContentChange,
 }) => {
@@ -345,6 +343,20 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
   const [editableContent, setEditableContent] = useState(content);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingContent, setIsEditingContent] = useState(false);
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const togglePlayPause = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   const handleTitleBlur = () => {
     setIsEditingTitle(false);
@@ -360,7 +372,17 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
     }
   };
 
-  const renderEditableTitle = () => {
+  const renderTitle = () => {
+    // If not editable, return static title
+    if (!editable) {
+      return (
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
+          {title}
+        </h1>
+      );
+    }
+
+    // Original editable implementation
     return isEditingTitle ? (
       <input
         type="text"
@@ -380,7 +402,18 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
     );
   };
 
-  const renderEditableContent = () => {
+  const renderContent = () => {
+    // If not editable, return static content
+    if (!editable) {
+      return (
+        <div
+          className="prose prose-lg dark:prose-dark"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      );
+    }
+
+    // Original editable implementation
     return isEditingContent ? (
       <textarea
         value={editableContent}
@@ -411,15 +444,15 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                   className="w-full h-full object-cover"
                 />
               )}
-              {video && (
+              {/* {video && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                   <Play className="w-12 h-12 text-white" />
                 </div>
-              )}
+              )} */}
             </div>
             <div className="lg:w-1/2 p-8">
-              {renderEditableTitle()}
-              {renderEditableContent()}
+              {renderTitle()}
+              {renderContent()}
             </div>
           </div>
         );
@@ -428,8 +461,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
         return (
           <div className="flex flex-col lg:flex-row min-h-[600px] relative">
             <div className="lg:w-1/2 p-8">
-              {renderEditableTitle()}
-              {renderEditableContent()}
+              {renderTitle()}
+              {renderContent()}
             </div>
             <div className="lg:w-1/2 relative">
               {image && (
@@ -439,11 +472,11 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                   className="w-full h-full object-cover"
                 />
               )}
-              {video && (
+              {/* {video && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                   <Play className="w-12 h-12 text-white" />
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         );
@@ -461,8 +494,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
             <div className="absolute inset-0 bg-black/50" />
             <div className="relative z-10 max-w-4xl mx-auto p-8">
               <div className="bg-white dark:bg-dark-700 rounded-xl shadow-xl p-8">
-                {renderEditableTitle()}
-                {renderEditableContent()}
+                {renderTitle()}
+                {renderContent()}
               </div>
             </div>
           </div>
@@ -471,8 +504,10 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
       case "layout4":
         return (
           <div className="min-h-[600px] relative">
-            <div className="text-center p-8 bg-gray-900 text-white">
-              {renderEditableTitle()}
+            <div className="text-center p-8 text-gray-900 dark:text-white overflow-hidden rounded-t-xl">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                {renderTitle()}
+              </h1>
             </div>
             {image && (
               <div className="relative h-96">
@@ -481,16 +516,14 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                   alt={editableTitle}
                   className="w-full h-full object-cover"
                 />
-                {video && (
+                {/* {video && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                     <Play className="w-12 h-12 text-white" />
                   </div>
-                )}
+                )} */}
               </div>
             )}
-            <div className="max-w-4xl mx-auto p-8">
-              {renderEditableContent()}
-            </div>
+            <div className="max-w-4xl mx-auto p-8">{renderContent()}</div>
           </div>
         );
 
@@ -504,16 +537,16 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                   alt={editableTitle}
                   className="w-full h-full object-cover"
                 />
-                {video && (
+                {/* {video && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                     <Play className="w-12 h-12 text-white" />
                   </div>
-                )}
+                )} */}
               </div>
             )}
             <div className="max-w-4xl mx-auto p-8">
-              {renderEditableTitle()}
-              {renderEditableContent()}
+              {renderTitle()}
+              {renderContent()}
             </div>
           </div>
         );
@@ -522,8 +555,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
         return (
           <div className="min-h-[600px] relative">
             <div className="max-w-4xl mx-auto p-8">
-              {renderEditableTitle()}
-              {renderEditableContent()}
+              {renderTitle()}
+              {renderContent()}
             </div>
             {image && (
               <div className="relative h-96">
@@ -532,11 +565,11 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                   alt={editableTitle}
                   className="w-full h-full object-cover"
                 />
-                {video && (
+                {/* {video && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/40">
                     <Play className="w-12 h-12 text-white" />
                   </div>
-                )}
+                )} */}
               </div>
             )}
           </div>
@@ -546,8 +579,8 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
         return (
           <div className="min-h-[600px] flex items-center justify-center bg-gray-100 dark:bg-dark-700 p-8">
             <div className="max-w-3xl text-center">
-              {renderEditableTitle()}
-              {renderEditableContent()}
+              {renderTitle()}
+              {renderContent()}
             </div>
           </div>
         );
@@ -622,25 +655,25 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
                 />
               ) : (
                 <div
-                  className="text-2xl text-gray-600 dark:text-gray-300 mt-4 cursor-text"
+                  className="text-2xl text-gray-600 dark:text-gray-300 mt-4 cursor-text prose prose-lg dark:prose-invert"
                   onClick={() => setIsEditingContent(true)}
-                >
-                  {editableContent}
-                </div>
+                  dangerouslySetInnerHTML={{
+                    __html: editableContent || "<p>Click to edit content</p>",
+                  }}
+                />
               )}
             </div>
           </div>
         );
-
       case "layout10":
         return (
           <div className="min-h-[600px] flex items-center relative justify-center bg-gray-200 dark:bg-dark-800 p-8">
             <div className="max-w-3xl bg-white dark:bg-dark-700 p-6 shadow-xl rounded-lg text-center">
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                {renderEditableTitle()}
+                {renderTitle()}
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300">
-                {renderEditableContent()}
+                {renderContent()}
               </p>
             </div>
           </div>
@@ -669,7 +702,7 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
               )}
 
               <div className="text-3xl font-light text-center text-blue-100 leading-relaxed">
-                {renderEditableContent()}
+                {renderContent()}
               </div>
             </div>
           </div>
@@ -682,6 +715,17 @@ export const ChapterContent: React.FC<ChapterContentProps> = ({
 
   return (
     <div className="bg-white dark:bg-dark-800 rounded-xl shadow-sm overflow-hidden">
+      {audio && (
+        <>
+          <audio
+            ref={audioRef}
+            src={audio}
+            onEnded={() => setIsPlaying(false)}
+            className="hidden"
+          />
+          <AudioControls isPlaying={isPlaying} onPlayPause={togglePlayPause} />
+        </>
+      )}
       {renderLayout()}
     </div>
   );
@@ -729,6 +773,7 @@ export const ChapterPreview: React.FC<ChapterPreviewProps> = ({
         </div>
         <div className="p-4">
           <ChapterContent
+            editable={true}
             layout={selectedLayout?.id}
             title={layoutTitle || "Sample Chapter Title"}
             content={

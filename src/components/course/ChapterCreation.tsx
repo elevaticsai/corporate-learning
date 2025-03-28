@@ -53,8 +53,10 @@ interface Chapter {
 }
 
 const ChapterCreation = ({ chapters, onUpdate }: any) => {
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
-  const [rightCollapsed, setRightCollapsed] = useState(false);
+  const [leftCollapsed, setLeftCollapsed] = useState(true);
+  const [rightCollapsed, setRightCollapsed] = useState(true);
+  const [leftHovered, setLeftHovered] = useState(false);
+  const [rightHovered, setRightHovered] = useState(false);
   const [showMediaOptions, setShowMediaOptions] = useState(false);
   const [showImagePopup, setShowImagePopup] = useState(false);
   const [showAudioPopup, setShowAudioPopup] = useState(false);
@@ -907,25 +909,18 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
                 {...provided.droppableProps}
                 ref={provided.innerRef}
                 className={`transition-all duration-300 ease-in-out ${
-                  leftCollapsed ? "w-16" : "w-1/4"
+                  leftCollapsed ? "w-16 hover:w-1/4" : "w-1/4"
                 }`}
+                onMouseEnter={() => setLeftHovered(true)}
+                onMouseLeave={() => setLeftHovered(false)}
               >
-                {/* Collapse/Expand Button - Always show */}
-                <button
-                  onClick={() => setLeftCollapsed(!leftCollapsed)}
-                  className="p-2 bg-gray-100 dark:bg-dark-700 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-600 mb-4"
-                  title={leftCollapsed ? "Expand" : "Collapse"}
-                >
-                  {leftCollapsed ? <ChevronRight /> : <ChevronLeft />}
-                </button>
-
                 {/* Scrollable chapter list container - now applies to both states */}
                 <div
                   className={`h-[500px] overflow-y-auto ${
                     leftCollapsed ? "flex flex-col items-center" : ""
                   }`}
                 >
-                  {leftCollapsed ? (
+                  {leftCollapsed && !leftHovered ? (
                     /* Collapsed state - scrollable BookOpen icons */
                     <div className="space-y-2">
                       {normalizedChapters.length > 0 ? (
@@ -1695,23 +1690,14 @@ const ChapterCreation = ({ chapters, onUpdate }: any) => {
 
         <div
           className={`transition-all duration-300 ease-in-out ${
-            rightCollapsed ? "w-16" : "w-1/4"
+            rightCollapsed ? "w-16 hover:w-1/4" : "w-1/4"
           }`}
+          onMouseEnter={() => setRightHovered(true)}
+          onMouseLeave={() => setRightHovered(false)}
         >
-          {/* Collapse/Expand Button with Eye Icon */}
-          <div className="flex justify-end items-center gap-2">
-            <button
-              onClick={() => setRightCollapsed(!rightCollapsed)}
-              className="p-2 bg-gray-100 dark:bg-dark-700 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-600"
-              title={rightCollapsed ? "Expand" : "Collapse"}
-            >
-              {rightCollapsed ? <ChevronLeft /> : <ChevronRight />}
-            </button>
-          </div>
-
           {/* Sidebar content */}
-          {rightCollapsed ? (
-            <div className="mt-4 space-y-3 px-2">
+          {rightCollapsed && !rightHovered ? (
+            <div className="mt-4 space-y-3 px-2 h-[500px] overflow-y-auto">
               {rightCollapsed && (
                 <button
                   onClick={() => setShowPreview(true)}

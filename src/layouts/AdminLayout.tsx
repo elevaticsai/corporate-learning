@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { useSelector } from "react-redux";
@@ -9,7 +9,6 @@ import {
   GraduationCap,
   School,
   LogOut,
-  X,
   User,
   Moon,
   Sun,
@@ -19,7 +18,6 @@ import {
   CheckCircle,
   Clock,
   Home,
-  ChevronRight,
 } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import {
@@ -33,8 +31,8 @@ import {
   Typography,
   Box,
   Divider,
+  useTheme as useMuiTheme,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
 
 const menuItems = [
   {
@@ -101,6 +99,7 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
   const { theme, toggleTheme } = useTheme();
+  const muiTheme = useMuiTheme();
   const user = useSelector((state: any) => state.auth.user);
   const userRole = user?.role || "GUEST";
 
@@ -120,12 +119,26 @@ const AdminLayout = () => {
     }
   };
 
+  const handleLogout = () => {
+    signout();
+    navigate("/");
+  };
+
+  // Dark mode colors
+  const darkMode = theme === "dark";
+  const drawerBgColor = darkMode ? "#1E293B" : "#ffffff";
+  const textColor = darkMode ? "#ffffff" : "#1F2937";
+  const hoverBgColor = darkMode ? "#334155" : "#F3F4F6";
+  const activeBgColor = darkMode ? "#3B82F6" : "#EFF6FF";
+  const activeTextColor = darkMode ? "#93C5FD" : "#3B82F6";
+  const dividerColor = darkMode ? "#374151" : "#E5E7EB";
+
   return (
     <Box
       sx={{
         display: "flex",
         minHeight: "100vh",
-        bgcolor: "background.default",
+        bgcolor: darkMode ? "#0F172A" : "#F9FAFB",
       }}
     >
       {/* Sidebar */}
@@ -140,35 +153,24 @@ const AdminLayout = () => {
           "& .MuiDrawer-paper": {
             width: sidebarExpanded || sidebarHovered ? "20%" : 80,
             boxSizing: "border-box",
-            // transition: "width 0.1s ease-in-out",
             overflowX: "hidden",
             display: "flex",
             flexDirection: "column",
+            bgcolor: drawerBgColor,
+            color: textColor,
+            borderRight: `1px solid ${dividerColor}`,
           },
         }}
       >
         <Toolbar>
           {(sidebarExpanded || sidebarHovered) && (
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{
-                fontFamily:
-                  '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-              }}
-            >
+            <Typography variant="h6" noWrap component="div">
               Elevatics360
             </Typography>
           )}
         </Toolbar>
-        <Divider />
-        <List
-          sx={{
-            flexGrow: 1,
-            fontFamily: "ui-sans-serif, system-ui, sans-serif !important",
-          }}
-        >
+        <Divider sx={{ borderColor: dividerColor }} />
+        <List sx={{ flexGrow: 1 }}>
           {menuItems
             .filter((item) => item.roles.includes(userRole))
             .map((item) => {
@@ -182,55 +184,45 @@ const AdminLayout = () => {
                   sx={{
                     px: 2.5,
                     py: 1.5,
-                    fontFamily:
-                      '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
                     borderRadius: 2,
                     "&.active": {
-                      bgcolor: "primary.light",
-                      color: "primary.main",
+                      bgcolor: activeBgColor,
+                      color: activeTextColor,
+                      "& .MuiListItemIcon-root": {
+                        color: activeTextColor,
+                      },
                     },
                     "&:hover": {
-                      bgcolor: "action.hover",
+                      bgcolor: hoverBgColor,
                     },
                   }}
                 >
                   <ListItemIcon sx={{ minWidth: 40, py: 1 }}>
-                    <Icon size={20} />
+                    <Icon size={20} color={muiTheme.palette.text.primary} />
                   </ListItemIcon>
                   {(sidebarExpanded || sidebarHovered) && (
-                    <ListItemText
-                      primary={item.title}
-                      sx={{
-                        opacity: 1,
-                        "& .MuiTypography-root": {
-                          fontFamily:
-                            "ui-sans-serif, system-ui, sans-serif !important",
-                        },
-                      }}
-                    />
+                    <ListItemText primary={item.title} />
                   )}
                 </ListItem>
               );
             })}
         </List>
         <Box sx={{ mt: "auto" }}>
-          <Divider />
+          <Divider sx={{ borderColor: dividerColor }} />
           <Box sx={{ p: 2 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Box
                 sx={{
                   width: 40,
-                  height: 20,
+                  height: 40,
                   borderRadius: "50%",
-                  bgcolor: "grey.300",
+                  bgcolor: darkMode ? "#334155" : "#E5E7EB",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontFamily:
-                    '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
                 }}
               >
-                <User size={20} />
+                <User size={20} color={muiTheme.palette.text.primary} />
               </Box>
               {(sidebarExpanded || sidebarHovered) && (
                 <Box
@@ -241,21 +233,11 @@ const AdminLayout = () => {
                     justifyContent: "space-between",
                   }}
                 >
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: "medium",
-                      fontFamily:
-                        '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-                    }}
-                  >
+                  <Typography variant="body1" sx={{ fontWeight: "medium" }}>
                     {user?.username || "Guest User"}
                   </Typography>
-                  <IconButton
-                    onClick={toggleTheme}
-                    sx={{ color: "text.primary" }}
-                  >
-                    {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                  <IconButton onClick={toggleTheme} sx={{ color: textColor }}>
+                    {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                   </IconButton>
                 </Box>
               )}
@@ -269,33 +251,27 @@ const AdminLayout = () => {
                   mt: 1,
                 }}
               >
-                <IconButton
-                  onClick={toggleTheme}
-                  sx={{
-                    color: "text.primary",
-                    fontFamily:
-                      '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-                  }}
-                >
-                  {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                <IconButton onClick={toggleTheme} sx={{ color: textColor }}>
+                  {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                 </IconButton>
-                <IconButton onClick={signout} sx={{ color: "text.primary" }}>
+                <IconButton onClick={handleLogout} sx={{ color: textColor }}>
                   <LogOut size={20} />
                 </IconButton>
               </Box>
             )}
             {(sidebarExpanded || sidebarHovered) && (
               <Box sx={{ mt: 2 }}>
-                <IconButton onClick={signout} sx={{ color: "text.primary" }}>
+                <IconButton
+                  onClick={handleLogout}
+                  sx={{
+                    color: textColor,
+                    "&:hover": {
+                      bgcolor: hoverBgColor,
+                    },
+                  }}
+                >
                   <LogOut size={20} />
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      ml: 1,
-                      fontFamily:
-                        '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
-                    }}
-                  >
+                  <Typography variant="body2" sx={{ ml: 1 }}>
                     Sign out
                   </Typography>
                 </IconButton>
@@ -311,6 +287,7 @@ const AdminLayout = () => {
         sx={{
           flexGrow: 1,
           px: 3,
+          bgcolor: darkMode ? "#0F172A" : "#F9FAFB",
         }}
       >
         <Toolbar />

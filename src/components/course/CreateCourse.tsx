@@ -104,7 +104,7 @@ const CreateCourse = () => {
           title: chapter.title,
           description: chapter.description,
           order: chapterIndex + 1,
-          template: chapter.template || "simple",
+          template: chapter.layout ? chapter.layout : chapter.template,
           content: {
             imgUrl: chapter.content?.imgUrl || chapter.image || "",
             audioUrl: chapter.content?.audioUrl || chapter.audio || "",
@@ -118,6 +118,9 @@ const CreateCourse = () => {
                 ALLOWED_TAGS: [],
               }),
               order: subChapterIndex + 1,
+              template: subChapter.layout
+                ? subChapter.layout
+                : subChapter.template,
               content: {
                 imgUrl: subChapter.content?.imgUrl || subChapter.image || "",
                 audioUrl:

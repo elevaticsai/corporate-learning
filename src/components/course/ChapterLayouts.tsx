@@ -752,12 +752,31 @@ export const ChapterPreview: React.FC<ChapterPreviewProps> = ({
   onTitleChange,
   onContentChange,
 }) => {
-  const selectedLayout = chapterLayouts.find((l) => l.name === layout);
+  const [currentLayout, setCurrentLayout] = useState(layout);
+  const selectedLayout = chapterLayouts.find((l) => l.name === currentLayout);
+
+  const handleNext = () => {
+    const currentIndex = chapterLayouts.findIndex(
+      (l) => l.name === currentLayout
+    );
+    const nextIndex =
+      currentIndex < chapterLayouts.length - 1 ? currentIndex + 1 : 0;
+    setCurrentLayout(chapterLayouts[nextIndex].name);
+  };
+
+  const handlePrev = () => {
+    const currentIndex = chapterLayouts.findIndex(
+      (l) => l.name === currentLayout
+    );
+    const prevIndex =
+      currentIndex > 0 ? currentIndex - 1 : chapterLayouts.length - 1;
+    setCurrentLayout(chapterLayouts[prevIndex].name);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-dark-800 rounded-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white dark:bg-dark-800 p-4 border-b border-gray-200 dark:border-dark-700 flex items-center justify-between">
+      <div className="bg-white dark:bg-dark-800 rounded-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
+        <div className="sticky top-0 bg-white dark:bg-dark-800 p-4 border-b border-gray-200 dark:border-dark-700 flex items-center justify-between z-10">
           <div className="flex items-center">
             <Eye className="w-5 h-5 text-gray-500 mr-2" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -771,10 +790,11 @@ export const ChapterPreview: React.FC<ChapterPreviewProps> = ({
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-4">
+
+        <div className="flex-1 overflow-y-auto p-4">
           <ChapterContent
             editable={true}
-            layout={selectedLayout?.id}
+            layout={selectedLayout?.id || ""}
             title={layoutTitle || "Sample Chapter Title"}
             content={
               layoutContent ||
@@ -788,6 +808,25 @@ export const ChapterPreview: React.FC<ChapterPreviewProps> = ({
             onTitleChange={onTitleChange}
             onContentChange={onContentChange}
           />
+        </div>
+
+        {/* Navigation buttons */}
+        <div className="sticky bottom-0 bg-white dark:bg-dark-800 p-3 border-t border-gray-200 dark:border-dark-700 flex items-center justify-between z-10">
+          <button
+            onClick={handlePrev}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-dark-700 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-3" />
+            <span>Previous</span>
+          </button>
+
+          <button
+            onClick={handleNext}
+            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-dark-700 rounded-lg hover:bg-gray-200 dark:hover:bg-dark-600 transition-colors"
+          >
+            <span>Next</span>
+            <ChevronRight className="w-5 h-3" />
+          </button>
         </div>
       </div>
     </div>

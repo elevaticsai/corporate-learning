@@ -100,6 +100,7 @@ const CreateCourse = () => {
           ALLOWED_TAGS: [],
         }),
         category: courseData.basicInfo.category,
+        imgUrl: courseData.basicInfo.image,
         chapters: courseData.chapters.map((chapter, chapterIndex) => ({
           title: chapter.title,
           description: chapter.description,
@@ -145,7 +146,7 @@ const CreateCourse = () => {
 
       setTimeout(() => {
         setSuccessMessage(false);
-        // navigate("/instructor");
+        navigate("/instructor");
       }, 3000);
     } catch (error) {
       console.error("Error saving course:", error);
@@ -271,8 +272,8 @@ const CreateCourse = () => {
               {isLoading
                 ? "Saving..."
                 : isEditMode
-                ? "Update Course"
-                : "Save Course"}
+                  ? "Update Course"
+                  : "Save Course"}
             </button>
           )}
         </div>

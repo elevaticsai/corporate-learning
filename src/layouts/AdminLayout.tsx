@@ -21,7 +21,7 @@ import {
   Home,
   ChevronRight,
 } from "lucide-react";
-import { useTheme } from "../contexts/ThemeContext";
+// import { useTheme } from "../contexts/ThemeContext";
 import {
   Drawer,
   List,
@@ -34,7 +34,7 @@ import {
   Box,
   Divider,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
+// import MenuIcon from "@mui/icons-material/Menu";
 
 const menuItems = [
   {
@@ -81,12 +81,12 @@ const menuItems = [
     path: "/courses/create",
     roles: ["SUPER_ADMIN", "INSTRUCTOR"],
   },
-  {
-    title: "Create Presentation",
-    icon: Presentation,
-    path: "/presentation/create",
-    roles: ["SUPER_ADMIN", "INSTRUCTOR"],
-  },
+  // {
+  //   title: "Create Presentation",
+  //   icon: Presentation,
+  //   path: "/presentation/create",
+  //   roles: ["SUPER_ADMIN", "INSTRUCTOR"],
+  // },
   {
     title: "Settings",
     icon: Settings,
@@ -100,7 +100,7 @@ const AdminLayout = () => {
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
-  const { theme, toggleTheme } = useTheme();
+  // const { theme, toggleTheme } = useTheme();
   const user = useSelector((state: any) => state.auth.user);
   const userRole = user?.role || "GUEST";
 
@@ -251,12 +251,12 @@ const AdminLayout = () => {
                   >
                     {user?.username || "Guest User"}
                   </Typography>
-                  <IconButton
+                  {/* <IconButton
                     onClick={toggleTheme}
                     sx={{ color: "text.primary" }}
                   >
                     {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-                  </IconButton>
+                  </IconButton> */}
                 </Box>
               )}
             </Box>
@@ -269,7 +269,7 @@ const AdminLayout = () => {
                   mt: 1,
                 }}
               >
-                <IconButton
+                {/* <IconButton
                   onClick={toggleTheme}
                   sx={{
                     color: "text.primary",
@@ -278,7 +278,7 @@ const AdminLayout = () => {
                   }}
                 >
                   {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-                </IconButton>
+                </IconButton> */}
                 <IconButton onClick={signout} sx={{ color: "text.primary" }}>
                   <LogOut size={20} />
                 </IconButton>

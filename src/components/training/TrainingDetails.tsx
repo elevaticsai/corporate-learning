@@ -5,8 +5,8 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Confetti from "react-confetti";
 import TemplateRenderer from "./Layout";
-import DOMPurify from 'dompurify';
-import parse from 'html-react-parser';
+import DOMPurify from "dompurify";
+import parse from "html-react-parser";
 
 import {
   ChevronLeft,
@@ -15,14 +15,24 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  ChevronRight,
 } from "lucide-react";
 import axios from "axios";
+import { ChapterContent, chapterLayouts } from "../course/ChapterLayouts";
 
 // Interfaces
 interface ChapterContent {
   imgUrl?: string;
   audioUrl?: string;
   videoUrl?: string;
+}
+
+interface SubChapter {
+  _id: string;
+  title: string;
+  description: string;
+  content: ChapterContent;
+  order: number;
 }
 
 interface Question {
@@ -40,6 +50,7 @@ interface Chapter {
   isCompleted: true | false;
   duration: string;
   template: string;
+  subChapters?: SubChapter[];
 }
 
 const TrainingDetails = () => {
@@ -49,9 +60,24 @@ const TrainingDetails = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [questionPanel, setQuestionPanel] = useState("overview");
   const [trainingDetails, setTrainingDetails] = useState<any>(null);
+  const [expandedChapters, setExpandedChapters] = useState<
+    Record<string, boolean>
+  >({});
   console.log(trainingDetails);
+  const toggleChapterExpansion = (chapterId: string) => {
+    setExpandedChapters((prev) => ({
+      ...prev,
+      [chapterId]: !prev[chapterId],
+    }));
+  };
+
+  const isChapterExpanded = (chapterId: string) => {
+    return expandedChapters[chapterId] || false;
+  };
 
   const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
+  const [selectedSubChapter, setSelectedSubChapter] =
+    useState<SubChapter | null>(null);
   const [nextItem, setNextItem] = useState<{
     itemType: string;
     data: string;
@@ -76,6 +102,11 @@ const TrainingDetails = () => {
   const isLastQuestion = nextQuestionId === null;
 
   const [parsedDescription, setParsedDescription] = useState("");
+
+  const mapTemplateNameToId = (templateName: string): string => {
+    const layout = chapterLayouts.find((l) => l.name === templateName);
+    return layout ? layout.id : "layout1"; // default to layout1 if not found
+  };
 
   useEffect(() => {
     if (trainingDetails?.description) {
@@ -133,6 +164,7 @@ const TrainingDetails = () => {
       .then((response) => {
         const fetchedChapter: Chapter = response.data.currentItem;
         setSelectedChapter(fetchedChapter);
+        setSelectedSubChapter(null); // Reset selected subchapter when selecting a new chapter
         setNextItem(response.data.nextItem || null);
         setActiveTab("content");
         setQuestionPanel("content");
@@ -141,6 +173,32 @@ const TrainingDetails = () => {
       })
       .catch((error) =>
         console.error("Error fetching chapter content:", error)
+      );
+  };
+
+  const handleSubChapterSelect = (subChapter: SubChapter) => {
+    if (!token || !selectedChapter) {
+      window.location.href = "/login";
+      return;
+    }
+
+    axios
+      .get(
+        `http://localhost:4000/api/section?id=${selectedChapter._id}&type=chapter&subchapterOrder=${subChapter.order}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then((response) => {
+        setSelectedSubChapter(response.data.currentItem);
+        setNextItem(response.data.nextItem || null);
+        setQuestionPanel("content");
+        setSelectedAnswers([]);
+      })
+      .catch((error) =>
+        console.error("Error fetching subchapter content:", error)
       );
   };
 
@@ -283,10 +341,6 @@ const TrainingDetails = () => {
       .catch((error) => console.error("Error submitting answer:", error));
   };
 
-  // const handleAnswerSelect = (answer: string) => {
-  //   setUserAnswer(answer);
-  // };
-
   const handleOptionChange = (option: string) => {
     if (question?.type === "SCQ") {
       // Single-choice: Only one option can be selected
@@ -318,6 +372,28 @@ const TrainingDetails = () => {
     );
     return currentIndex - 1 >= 0
       ? trainingDetails.chapters[currentIndex - 1]
+      : null;
+  };
+
+  const getNextSubChapter = () => {
+    if (!selectedChapter || !selectedSubChapter || !selectedChapter.subChapters)
+      return null;
+    const currentIndex = selectedChapter.subChapters.findIndex(
+      (subChapter) => subChapter._id === selectedSubChapter._id
+    );
+    return currentIndex + 1 < selectedChapter.subChapters.length
+      ? selectedChapter.subChapters[currentIndex + 1]
+      : null;
+  };
+
+  const getPreviousSubChapter = () => {
+    if (!selectedChapter || !selectedSubChapter || !selectedChapter.subChapters)
+      return null;
+    const currentIndex = selectedChapter.subChapters.findIndex(
+      (subChapter) => subChapter._id === selectedSubChapter._id
+    );
+    return currentIndex - 1 >= 0
+      ? selectedChapter.subChapters[currentIndex - 1]
       : null;
   };
 
@@ -384,59 +460,109 @@ const TrainingDetails = () => {
 
               {/* Course Chapters */}
               <div className="p-8 space-y-8">
-                {/* <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    About This Course
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                    {trainingDetails.description}
-                  </p>
-                </div> */}
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
                     Course Content
                   </h2>
                   <div className="space-y-4">
                     {trainingDetails.chapters.map((chapter: Chapter) => (
-                      <div
-                        key={chapter._id}
-                        className="bg-gray-50 dark:bg-dark-700 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-600 transition cursor-pointer overflow-hidden"
-                        onClick={() => handleChapterSelect(chapter._id)}
-                      >
-                        <div className="p-4 flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            {chapter.isCompleted === true ? (
-                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                            ) : chapter.isCompleted === false ? (
-                              <PlayCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
-                            ) : (
-                              <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                            )}
-                            <div>
-                              <h3 className="font-medium text-gray-900 dark:text-white">
-                                {chapter.title}
-                              </h3>
-                              <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                {parse(DOMPurify.sanitize(chapter.description))}
+                      <div key={chapter._id} className="space-y-2">
+                        <div
+                          className="bg-gray-50 dark:bg-dark-700 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-600 transition cursor-pointer overflow-hidden"
+                          onClick={() => handleChapterSelect(chapter._id)}
+                        >
+                          <div className="p-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              {chapter.isCompleted === true ? (
+                                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                              ) : chapter.isCompleted === false ? (
+                                <PlayCircle className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                              ) : (
+                                <Clock className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                              )}
+                              <div>
+                                <h3 className="font-medium text-gray-900 dark:text-white">
+                                  {chapter.title}
+                                </h3>
+                                <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                  {parse(
+                                    DOMPurify.sanitize(chapter.description)
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-4 ml-4">
+                              <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                                {chapter.duration}
+                              </span>
+
+                              {chapter.isCompleted === true && (
+                                <span className="px-2.5 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-medium whitespace-nowrap">
+                                  Completed
+                                </span>
+                              )}
+                              {chapter.isCompleted === false && (
+                                <span className="px-2.5 py-1 bg-green-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium whitespace-nowrap">
+                                  Pending
+                                </span>
+                              )}
+                              <div className="w-3">
+                                {" "}
+                                {chapter.subChapters &&
+                                  chapter.subChapters.length > 0 && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleChapterExpansion(chapter._id);
+                                      }}
+                                      className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                                    >
+                                      <ChevronRight
+                                        className={`w-5 h-5 transition-transform ${
+                                          isChapterExpanded(chapter._id)
+                                            ? "transform rotate-90"
+                                            : ""
+                                        }`}
+                                      />
+                                    </button>
+                                  )}
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center space-x-4 ml-4">
-                            <span className="text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                              {chapter.duration}
-                            </span>
-                            {chapter.isCompleted === true && (
-                              <span className="px-2.5 py-1 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 rounded-full text-xs font-medium whitespace-nowrap">
-                                Completed
-                              </span>
-                            )}
-                            {chapter.isCompleted === false && (
-                              <span className="px-2.5 py-1 bg-green-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium whitespace-nowrap">
-                                Pending
-                              </span>
-                            )}
-                          </div>
                         </div>
+
+                        {/* Render subchapters if they exist */}
+                        {chapter.subChapters &&
+                          chapter.subChapters.length > 0 &&
+                          isChapterExpanded(chapter._id) && (
+                            <div className="ml-12 space-y-2">
+                              {chapter.subChapters.map((subChapter) => (
+                                <div
+                                  key={subChapter._id}
+                                  className="bg-gray-50 dark:bg-dark-700 rounded-lg hover:bg-gray-100 dark:hover:bg-dark-600 transition cursor-pointer overflow-hidden"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleChapterSelect(chapter._id);
+                                    handleSubChapterSelect(subChapter);
+                                  }}
+                                >
+                                  <div className="p-4 flex items-center justify-between">
+                                    <div className="flex items-center space-x-4">
+                                      <PlayCircle className="w-5 h-5 text-blue-300 flex-shrink-0" />
+                                      <div>
+                                        <h3 className="font-medium text-gray-900 dark:text-white">
+                                          {subChapter.title}
+                                        </h3>
+                                        <div className="text-sm text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                          {subChapter.description}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -450,8 +576,26 @@ const TrainingDetails = () => {
           {questionPanel === "content" ? (
             <>
               <div className="">
-                {selectedChapter ? (
-                  <TemplateRenderer selectedChapter={selectedChapter} />
+                {selectedSubChapter ? (
+                  <ChapterContent
+                    layout={mapTemplateNameToId(
+                      selectedChapter?.template || "layout1"
+                    )}
+                    title={selectedSubChapter.title}
+                    content={selectedSubChapter.description}
+                    image={selectedSubChapter.content.imgUrl}
+                    audio={selectedSubChapter.content.audioUrl}
+                  />
+                ) : selectedChapter ? (
+                  <ChapterContent
+                    layout={mapTemplateNameToId(
+                      selectedChapter.template || "layout1"
+                    )}
+                    title={selectedChapter.title}
+                    content={selectedChapter.description}
+                    image={selectedChapter.content.imgUrl}
+                    audio={selectedChapter.content.audioUrl}
+                  />
                 ) : (
                   <div className="w-1/2 p-8 border-r border-gray-100 dark:border-dark-700 overflow-y-auto bg-white dark:bg-dark-800 rounded-xl shadow-sm">
                     <p className="text-gray-500 dark:text-gray-300">
@@ -464,46 +608,135 @@ const TrainingDetails = () => {
                   <div className="p-4 bg-gray-50 dark:bg-dark-700 border-t border-gray-100 dark:border-dark-700 overflow-hidden rounded-br-xl rounded-bl-xl">
                     <div className="flex justify-between items-center">
                       <button
-                        onClick={() =>
-                          getPreviousChapter() &&
-                          handleChapterSelect(getPreviousChapter()?._id || "")
+                        onClick={() => {
+                          if (selectedSubChapter) {
+                            const prevSubChapter = getPreviousSubChapter();
+                            if (prevSubChapter) {
+                              handleSubChapterSelect(prevSubChapter);
+                            } else {
+                              // No previous subchapter, go back to chapter
+                              setSelectedSubChapter(null);
+                            }
+                          } else {
+                            getPreviousChapter() &&
+                              handleChapterSelect(
+                                getPreviousChapter()?._id || ""
+                              );
+                          }
+                        }}
+                        disabled={
+                          selectedSubChapter
+                            ? !getPreviousSubChapter()
+                            : !getPreviousChapter()
                         }
-                        disabled={!getPreviousChapter()}
                         className={`flex items-center space-x-2 ${
-                          !getPreviousChapter()
+                          selectedSubChapter
+                            ? !getPreviousSubChapter()
+                              ? "text-gray-300"
+                              : "text-gray-500 dark:text-gray-300"
+                            : !getPreviousChapter()
                             ? "text-gray-300"
                             : "text-gray-500 dark:text-gray-300"
                         }`}
                       >
                         <ChevronLeft className="w-5 h-5" />
-                        <span>Previous Chapter</span>
+                        <span>
+                          Previous{" "}
+                          {selectedSubChapter ? "Subchapter" : "Chapter"}
+                        </span>
                       </button>
-                      {getNextChapter() ? (
-                        <button
-                          onClick={() =>
-                            getNextChapter() &&
-                            handleChapterSelect(getNextChapter()?._id || "")
-                          }
-                          disabled={!getNextChapter()}
-                          className={`flex items-center space-x-2 ${
-                            !getNextChapter()
-                              ? "text-gray-300"
-                              : "text-gray-500 dark:text-gray-300"
-                          }`}
-                        >
-                          <span>Next Chapter</span>
-                          <ChevronNextIcon className="w-5 h-5" />
-                        </button>
+                      {selectedSubChapter ? (
+                        <>
+                          {getNextSubChapter() ? (
+                            <button
+                              onClick={() =>
+                                getNextSubChapter() &&
+                                handleSubChapterSelect(getNextSubChapter()!)
+                              }
+                              disabled={!getNextSubChapter()}
+                              className={`flex items-center space-x-2 ${
+                                !getNextSubChapter()
+                                  ? "text-gray-300"
+                                  : "text-gray-500 dark:text-gray-300"
+                              }`}
+                            >
+                              <span>Next Subchapter</span>
+                              <ChevronNextIcon className="w-5 h-5" />
+                            </button>
+                          ) : (
+                            <>
+                              {getNextChapter() ? (
+                                <button
+                                  onClick={() =>
+                                    getNextChapter() &&
+                                    handleChapterSelect(
+                                      getNextChapter()?._id || ""
+                                    )
+                                  }
+                                  className="flex items-center space-x-2 text-gray-500 dark:text-gray-300"
+                                >
+                                  <span>Next Chapter</span>
+                                  <ChevronNextIcon className="w-5 h-5" />
+                                </button>
+                              ) : (
+                                <motion.button
+                                  onClick={() =>
+                                    fetchQuestion(nextItem?.data || "")
+                                  }
+                                  whileHover={{ rotate: [0, 11, -11, 0] }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="relative flex items-center space-x-2 px-6 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg"
+                                >
+                                  <span>Start Quiz</span>
+                                </motion.button>
+                              )}
+                            </>
+                          )}
+                        </>
                       ) : (
                         <>
-                          <motion.button
-                            onClick={() => fetchQuestion(nextItem?.data || "")}
-                            whileHover={{ rotate: [0, 11, -11, 0] }}
-                            whileTap={{ scale: 0.9 }}
-                            className="relative flex items-center space-x-2 px-6 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg"
-                          >
-                            <span>Start Quiz</span>
-                          </motion.button>
+                          {selectedChapter?.subChapters &&
+                          selectedChapter.subChapters.length > 0 ? (
+                            <button
+                              onClick={() =>
+                                handleSubChapterSelect(
+                                  selectedChapter.subChapters![0]
+                                )
+                              }
+                              className="flex items-center space-x-2 text-gray-500 dark:text-gray-300"
+                            >
+                              <span>Start Subchapter</span>
+                              <ChevronNextIcon className="w-5 h-5" />
+                            </button>
+                          ) : (
+                            <>
+                              {getNextChapter() ? (
+                                <button
+                                  onClick={() =>
+                                    getNextChapter() &&
+                                    handleChapterSelect(
+                                      getNextChapter()?._id || ""
+                                    )
+                                  }
+                                  className="flex items-center space-x-2 text-gray-500 dark:text-gray-300"
+                                >
+                                  <span>Next Chapter</span>
+                                  <ChevronNextIcon className="w-5 h-5" />
+                                </button>
+                              ) : (
+                                <motion.button
+                                  onClick={() =>
+                                    fetchQuestion(nextItem?.data || "")
+                                  }
+                                  whileHover={{ rotate: [0, 11, -11, 0] }}
+                                  whileTap={{ scale: 0.9 }}
+                                  className="relative flex items-center space-x-2 px-6 py-2 rounded-lg text-white bg-blue-500 hover:bg-blue-600 transition-all shadow-lg"
+                                >
+                                  <span>Start Quiz</span>
+                                </motion.button>
+                              )}
+                            </>
+                          )}
                         </>
                       )}
                     </div>

@@ -47,7 +47,7 @@ const TrainingCard = ({ training }: { training: Training }) => {
       <img
         src={training.image}
         alt={training.title}
-        className="w-full h-48 object-cover"
+        className="w-full aspect-[16/9] object-cover"
       />
       <div className="p-6">
         <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
@@ -67,7 +67,9 @@ const TrainingCard = ({ training }: { training: Training }) => {
             </div>
           </div>
           <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-600 dark:text-gray-400">Due: {training.dueDate}</span>
+            <span className="text-gray-600 dark:text-gray-400">
+              Due: {training.dueDate}
+            </span>
             <span className="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 rounded-full text-xs font-medium">
               {training.status}
             </span>
@@ -120,7 +122,9 @@ const EmployeeDashboard = () => {
             progress: module.moduleCompletionPercentage || 0,
             dueDate: "2024-04-15",
             status:
-              module.moduleCompletionPercentage === 100 ? "Completed" : "In Progress",
+              module.moduleCompletionPercentage === 100
+                ? "Completed"
+                : "In Progress",
           }));
 
         setAssignedTrainings(formattedTrainings);
@@ -148,7 +152,9 @@ const EmployeeDashboard = () => {
             <TrainingCard key={training.id} training={training} />
           ))
         ) : (
-          <p className="text-gray-600 dark:text-gray-400">No assigned training modules.</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            No assigned training modules.
+          </p>
         )}
       </div>
     </div>

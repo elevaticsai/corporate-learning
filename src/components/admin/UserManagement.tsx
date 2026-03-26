@@ -17,6 +17,7 @@ interface Employee {
   _id: string;
   name: string;
   email: string;
+  employeeCode: string;
   modules: Module[];
 }
 
@@ -413,6 +414,9 @@ const UserManagement = () => {
               <thead className="bg-gray-50 dark:bg-dark-800">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Employee Code
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Employee Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -436,7 +440,10 @@ const UserManagement = () => {
                     .map((employee) => {
                       console.log("Rendering employee:", employee);
                       return (
-                        <tr key={employee.email}>
+                        <tr key={employee.employeeCode}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {employee.employeeCode}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             {employee.name}
                           </td>

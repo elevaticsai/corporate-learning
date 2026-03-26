@@ -27,14 +27,15 @@ import Settings from "./components/admin/Setting";
 import ProtectedRoute from "./store/ProtectedRoute";
 import CompletedCourses from "./components/employee/CompletedCourses";
 import PendingCourses from "./components/employee/PendingCourses";
+import CreatePresentation from "./components/presentation/CreatePresentation";
 
 function App() {
   const loadUserFromStorage = useAuthStore(
-    (state) => state.loadUserFromStorage
+    (state) => state.loadUserFromStorage,
   );
 
   useEffect(() => {
-    loadUserFromStorage(); // Load auth state on app mount
+    loadUserFromStorage();
   }, []);
 
   return (
@@ -76,14 +77,8 @@ function App() {
               <Route path="hr" element={<HRDashboard />} />
               <Route path="hr/user-management" element={<UserManagement />} />
               <Route path="employee" element={<EmployeeDashboard />} />
-              <Route
-                path="employee/completed-courses"
-                element={<CompletedCourses />}
-              />
-              <Route
-                path="employee/pending-courses"
-                element={<PendingCourses />}
-              />
+              <Route path="completed-courses" element={<CompletedCourses />} />
+              <Route path="pending-courses" element={<PendingCourses />} />
               <Route path="instructor" element={<InstructorDashboard />} />
               <Route path="training/:id" element={<TrainingDetails />} />
               <Route path="courses/create" element={<CreateCourse />} />
@@ -103,17 +98,15 @@ function App() {
               <Route path="hr" element={<HRDashboard />} />
               <Route path="hr/user-management" element={<UserManagement />} />
               <Route path="employee" element={<EmployeeDashboard />} />
-              <Route
-                path="employee/completed-courses"
-                element={<CompletedCourses />}
-              />
-              <Route
-                path="employee/pending-courses"
-                element={<PendingCourses />}
-              />
+              <Route path="/completed-courses" element={<CompletedCourses />} />
+              <Route path="/pending-courses" element={<PendingCourses />} />
               <Route path="instructor" element={<InstructorDashboard />} />
               <Route path="training/:id" element={<TrainingDetails />} />
               <Route path="courses/create" element={<CreateCourse />} />
+              <Route
+                path="presentation/create"
+                element={<CreatePresentation />}
+              />
               <Route path="courses/edit/:courseId" element={<CreateCourse />} />
               <Route path="course-review/:id" element={<CourseReview />} />
             </Route>

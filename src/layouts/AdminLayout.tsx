@@ -19,7 +19,7 @@ import {
   Clock,
   Home,
 } from "lucide-react";
-import { useTheme } from "../contexts/ThemeContext";
+// import { useTheme } from "../contexts/ThemeContext";
 import {
   Drawer,
   List,
@@ -33,6 +33,7 @@ import {
   Divider,
   useTheme as useMuiTheme,
 } from "@mui/material";
+// import MenuIcon from "@mui/icons-material/Menu";
 
 const menuItems = [
   {
@@ -79,12 +80,12 @@ const menuItems = [
     path: "/courses/create",
     roles: ["SUPER_ADMIN", "INSTRUCTOR"],
   },
-  {
-    title: "Create Presentation",
-    icon: Presentation,
-    path: "/presentation/create",
-    roles: ["SUPER_ADMIN", "INSTRUCTOR"],
-  },
+  // {
+  //   title: "Create Presentation",
+  //   icon: Presentation,
+  //   path: "/presentation/create",
+  //   roles: ["SUPER_ADMIN", "INSTRUCTOR"],
+  // },
   {
     title: "Settings",
     icon: Settings,
@@ -98,6 +99,7 @@ const AdminLayout = () => {
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const navigate = useNavigate();
   const signout = useAuthStore((state) => state.signout);
+  // const { theme, toggleTheme } = useTheme();
   const { theme, toggleTheme } = useTheme();
   const muiTheme = useMuiTheme();
   const user = useSelector((state: any) => state.auth.user);
@@ -236,6 +238,14 @@ const AdminLayout = () => {
                   <Typography variant="body1" sx={{ fontWeight: "medium" }}>
                     {user?.username || "Guest User"}
                   </Typography>
+
+                  {/* <IconButton
+                    onClick={toggleTheme}
+                    sx={{ color: "text.primary" }}
+                  >
+                    {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                  </IconButton> */}
+
                   <IconButton onClick={toggleTheme} sx={{ color: textColor }}>
                     {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                   </IconButton>
@@ -251,10 +261,23 @@ const AdminLayout = () => {
                   mt: 1,
                 }}
               >
+
+                {/* <IconButton
+                  onClick={toggleTheme}
+                  sx={{
+                    color: "text.primary",
+                    fontFamily:
+                      '"ui-sans-serif", "system-ui", "sans-serif", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',
+                  }}
+                >
+                  {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                </IconButton> */}
+                <IconButton onClick={signout} sx={{ color: "text.primary" }}>
                 <IconButton onClick={toggleTheme} sx={{ color: textColor }}>
                   {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                 </IconButton>
                 <IconButton onClick={handleLogout} sx={{ color: textColor }}>
+
                   <LogOut size={20} />
                 </IconButton>
               </Box>

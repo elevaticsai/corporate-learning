@@ -31,11 +31,11 @@ import CreatePresentation from "./components/presentation/CreatePresentation";
 
 function App() {
   const loadUserFromStorage = useAuthStore(
-    (state) => state.loadUserFromStorage
+    (state) => state.loadUserFromStorage,
   );
 
   useEffect(() => {
-    loadUserFromStorage(); // Load auth state on app mount
+    loadUserFromStorage();
   }, []);
 
   return (
